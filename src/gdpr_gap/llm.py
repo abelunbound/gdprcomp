@@ -57,6 +57,8 @@ class ModelResult(BaseModel):
     judgement: CriterionJudgement
     model_id: str
     usage: TokenUse
+    prompt_id: str = Field(pattern=r"^[a-z0-9_]+$")
+    prompt_version: str = Field(pattern=r"^v[1-9][0-9]*$")
 
 
 class RawCompletion(BaseModel):
@@ -92,7 +94,14 @@ class LLMClient:
         self._input_cost = input_cost_per_million
         self._output_cost = output_cost_per_million
 
-    def judge(self, prompt: str, *, model_id: str | None = None) -> ModelResult:
+    def judge(
+        self,
+        prompt: str,
+        *,
+        prompt_id: str,
+        prompt_version: str,
+        model_id: str | None = None,
+    ) -> ModelResult:
         """Return one schema-valid judgement. Malformed text is not retried."""
         chosen_model = model_id or self._config.model.id
         attempts = self._config.model.max_retries
@@ -108,6 +117,8 @@ class LLMClient:
                 self._log(
                     "model_call_failed",
                     model_id=chosen_model,
+                    prompt_id=prompt_id,
+                    prompt_version=prompt_version,
                     attempt=attempt,
                     reason=str(exc),
                 )
@@ -121,6 +132,8 @@ class LLMClient:
                 self._log(
                     "model_response_invalid",
                     model_id=chosen_model,
+                    prompt_id=prompt_id,
+                    prompt_version=prompt_version,
                     attempt=attempt,
                     reason=str(exc),
                 )
@@ -133,12 +146,20 @@ class LLMClient:
             self._log(
                 "model_call",
                 model_id=chosen_model,
+                prompt_id=prompt_id,
+                prompt_version=prompt_version,
                 attempt=attempt,
                 input_tokens=usage.input_tokens,
                 output_tokens=usage.output_tokens,
                 cost_usd=usage.cost_usd,
             )
-            return ModelResult(judgement=judgement, model_id=chosen_model, usage=usage)
+            return ModelResult(
+                judgement=judgement,
+                model_id=chosen_model,
+                usage=usage,
+                prompt_id=prompt_id,
+                prompt_version=prompt_version,
+            )
         raise ModelError(f"Model call failed after {attempts} attempts: {last_error}")
 
     def _log(self, event: str, **fields: str | int | float | bool | None) -> None:

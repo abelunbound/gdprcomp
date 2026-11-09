@@ -19,7 +19,8 @@ from gdpr_gap.result_cache import (
 
 POLICY = "We ask for consent before sending marketing email."
 CRITERION = "consent_mechanisms"
-PROMPT_VERSION = "consent_mechanisms.v1"
+PROMPT_ID = "whole_policy_judge"
+PROMPT_VERSION = "v1"
 MODEL_ID = "claude-haiku-5-5"
 
 
@@ -51,6 +52,8 @@ def _judgement() -> ModelResult:
         ),
         model_id=MODEL_ID,
         usage=TokenUse(input_tokens=10, output_tokens=4, cost_usd=None),
+        prompt_id=PROMPT_ID,
+        prompt_version=PROMPT_VERSION,
     )
 
 
@@ -58,6 +61,7 @@ def _key(**overrides: str) -> CacheKey:
     values = {
         "policy_text": POLICY,
         "criterion_id": CRITERION,
+        "prompt_id": PROMPT_ID,
         "prompt_version": PROMPT_VERSION,
         "model_id": MODEL_ID,
     }
@@ -65,9 +69,15 @@ def _key(**overrides: str) -> CacheKey:
     return make_cache_key(**values)
 
 
-def test_cache_key_uses_only_the_four_identity_fields() -> None:
+def test_cache_key_uses_only_the_identity_fields() -> None:
     parameters = tuple(inspect.signature(make_cache_key).parameters)
-    assert parameters == ("policy_text", "criterion_id", "prompt_version", "model_id")
+    assert parameters == (
+        "policy_text",
+        "criterion_id",
+        "prompt_id",
+        "prompt_version",
+        "model_id",
+    )
 
     config = load_config(
         "configs/config.yaml",
@@ -88,11 +98,13 @@ def test_cache_key_uses_only_the_four_identity_fields() -> None:
     assert set(first.model_dump()) == {
         "policy_hash",
         "criterion_id",
+        "prompt_id",
         "prompt_version",
         "model_id",
     }
     assert POLICY not in json.dumps(first.model_dump())
-    assert _key(prompt_version="consent_mechanisms.v2") != first
+    assert _key(prompt_id="feedback") != first
+    assert _key(prompt_version="v2") != first
     assert _key(policy_text="A different policy.") != first
     assert _key(model_id="claude-sonnet-5-5") != first
 
@@ -114,6 +126,7 @@ def test_judgement_miss_then_hit_is_logged_and_computed_once(tmp_path: Path) -> 
     assert first == second == _judgement()
     assert calls == 1
     assert [record.getMessage() for record in records] == ["cache_miss", "cache_hit"]
+    assert _fields(records[0])["prompt_id"] == PROMPT_ID
     assert _fields(records[0])["prompt_version"] == PROMPT_VERSION
     assert _fields(records[0])["model_id"] == MODEL_ID
     assert POLICY not in json.dumps(_fields(records[0]))

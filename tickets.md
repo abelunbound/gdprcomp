@@ -100,7 +100,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** cache hits/misses are logged and never keyed on mutable config.
 
-- [ ] **T16. Prompt registry with versioning**
+- [x] **T16. Prompt registry with versioning**
 
   Prompts stored as versioned files; prompt ID + version recorded in every result.
 

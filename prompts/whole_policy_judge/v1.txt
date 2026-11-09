@@ -1,0 +1,12 @@
+Judge whether the privacy policy meets one criterion.
+Return only a JSON object with keys criterion_id, verdict, justification, and evidence_quotes.
+criterion_id must be {criterion_id}.
+verdict must be exactly Yes, Somewhat, or No.
+justification must be a non-empty string.
+evidence_quotes must be a list of exact sentences from the policy.
+
+Criterion:
+{condition}
+
+Policy:
+{policy_text}

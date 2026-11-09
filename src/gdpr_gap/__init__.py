@@ -8,6 +8,7 @@ from gdpr_gap.extract import ExtractionError, extract_text, extract_url
 from gdpr_gap.gaps import gap_ids, is_gap
 from gdpr_gap.llm import LLMClient, ModelError, build_transport
 from gdpr_gap.logging import configure_logging, log_event, log_policy
+from gdpr_gap.prompts import PromptError, PromptRecord, PromptRegistry
 from gdpr_gap.result_cache import CacheError, CacheKey, ResultCache, make_cache_key
 from gdpr_gap.sampling import (
     SamplingError,
@@ -46,6 +47,9 @@ __all__ = [
     "build_transport",
     "log_policy",
     "ping",
+    "PromptError",
+    "PromptRecord",
+    "PromptRegistry",
     "ResultCache",
     "sample_descriptive_set",
     "sample_gold_set",

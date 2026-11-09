@@ -12,6 +12,7 @@ from gdpr_gap.llm import (
     CriterionJudgement,
     LLMClient,
     ModelError,
+    ModelResult,
     RawCompletion,
     RetryableModelError,
     build_transport,
@@ -47,6 +48,10 @@ class FakeTransport:
         return item
 
 
+def _judge(client: LLMClient, prompt: str = "prompt") -> ModelResult:
+    return client.judge(prompt, prompt_id="whole_policy_judge", prompt_version="v1")
+
+
 def _raw(text: str) -> RawCompletion:
     return RawCompletion(text=text, input_tokens=12, output_tokens=8)
 
@@ -64,9 +69,11 @@ def test_valid_json_is_parsed_and_token_use_is_logged(caplog: pytest.LogCaptureF
     )
 
     with caplog.at_level(logging.INFO, logger=logger.name):
-        result = client.judge("prompt")
+        result = _judge(client)
 
     assert result.judgement == CriterionJudgement.model_validate(VALID)
+    assert result.prompt_id == "whole_policy_judge"
+    assert result.prompt_version == "v1"
     assert result.usage.input_tokens == 12
     assert result.usage.cost_usd == pytest.approx((12 * 1 + 8 * 5) / 1_000_000)
     events = [record.getMessage() for record in caplog.records]
@@ -83,7 +90,7 @@ def test_fenced_json_is_accepted_and_bad_verdict_is_not_retried() -> None:
     client = LLMClient(_config(), transport, sleep=lambda _seconds: None)
 
     with pytest.raises(ModelError, match="schema"):
-        client.judge("prompt")
+        _judge(client)
     assert transport.calls == 1
 
 
@@ -93,7 +100,7 @@ def test_temporary_provider_errors_are_retried() -> None:
     config = config.model_copy(update={"model": config.model.model_copy(update={"max_retries": 2})})
     client = LLMClient(config, transport, sleep=lambda _seconds: None)
 
-    result = client.judge("prompt")
+    result = _judge(client)
 
     assert result.judgement.criterion_id == "consent_mechanisms"
     assert transport.calls == 2
@@ -104,7 +111,7 @@ def test_auth_failure_is_not_retried() -> None:
     client = LLMClient(_config(), transport, sleep=lambda _seconds: None)
 
     with pytest.raises(ModelError, match="401"):
-        client.judge("prompt")
+        _judge(client)
     assert transport.calls == 1
 
 
@@ -161,4 +168,4 @@ def test_build_transport_uses_the_configured_provider() -> None:
 
 def test_cost_is_absent_when_no_price_is_configured() -> None:
     client = LLMClient(_config(), FakeTransport([_raw(json.dumps(VALID))]))
-    assert client.judge("prompt").usage.cost_usd is None
+    assert _judge(client).usage.cost_usd is None

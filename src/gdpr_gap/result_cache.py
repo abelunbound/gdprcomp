@@ -1,9 +1,9 @@
 """Cache LLM judgements and embedding vectors.
 
-A cache entry is identified only by the policy-text hash, criterion, prompt
-version, and model. Timeouts, batch size, weights, seeds, and the rest of the
-config are not part of the key. The prompt body is not part of the key either:
-a changed prompt needs a new prompt version.
+A cache entry is identified only by the policy-text hash, criterion, prompt id,
+prompt version, and model. Timeouts, batch size, weights, seeds, and the rest
+of the config are not part of the key. The prompt body is not part of the key
+either: a changed prompt needs a new prompt version.
 """
 
 from __future__ import annotations
@@ -33,7 +33,8 @@ class CacheKey(BaseModel):
 
     policy_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
     criterion_id: str = Field(pattern=r"^[a-z0-9_]+$")
-    prompt_version: str = Field(min_length=1)
+    prompt_id: str = Field(pattern=r"^[a-z0-9_]+$")
+    prompt_version: str = Field(pattern=r"^v[1-9][0-9]*$")
     model_id: str = Field(min_length=1)
 
 
@@ -163,6 +164,7 @@ class ResultCache:
             kind=kind,
             policy_hash=key.policy_hash,
             criterion_id=key.criterion_id,
+            prompt_id=key.prompt_id,
             prompt_version=key.prompt_version,
             model_id=key.model_id,
         )
@@ -172,6 +174,7 @@ def make_cache_key(
     *,
     policy_text: str,
     criterion_id: str,
+    prompt_id: str,
     prompt_version: str,
     model_id: str,
 ) -> CacheKey:
@@ -179,6 +182,7 @@ def make_cache_key(
     return CacheKey(
         policy_hash=hashlib.sha256(policy_text.encode("utf-8")).hexdigest(),
         criterion_id=criterion_id,
+        prompt_id=prompt_id,
         prompt_version=prompt_version,
         model_id=model_id,
     )
