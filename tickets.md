@@ -206,7 +206,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** time entries roll up into a reported baseline used in “time saved”.
 
-- [ ] **T32. Classification metrics**
+- [x] **T32. Classification metrics**
 
   Per criterion and overall: gap precision/recall/F1, 3-class macro-F1, weighted Cohen’s kappa, confusion matrix.
 
