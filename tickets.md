@@ -142,13 +142,13 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
 ## Phase 6 — Comparators
 
-- [ ] **T22. Legal-BERT retrieval baseline**
+- [x] **T22. Legal-BERT retrieval baseline**
 
   Cosine similarity between passage embeddings and criterion condition sentences; ranked passages; documented as topical relevance, not compliance.
 
   **Done when:** baseline outputs similarity scores and ranked passages with model version recorded.
 
-- [ ] **T23. Threshold calibration on dev split**
+- [x] **T23. Threshold calibration on dev split**
 
   Replace hardcoded thresholds with values calibrated on expert-labelled dev policies; persist and version calibration config.
 

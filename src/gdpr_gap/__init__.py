@@ -1,5 +1,12 @@
 """GDPR compliance gap evaluator."""
 
+from gdpr_gap.calibration import (
+    CalibrationError,
+    CalibrationRecord,
+    apply_calibration,
+    calibrate_retrieval_threshold,
+    load_calibration,
+)
 from gdpr_gap.config import ConfigError, MissingSecretError, load_config
 from gdpr_gap.corpus import CorpusError, load_corpus
 from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
@@ -13,6 +20,7 @@ from gdpr_gap.llm import LLMClient, ModelError, build_transport
 from gdpr_gap.logging import configure_logging, log_event, log_policy
 from gdpr_gap.prompts import PromptError, PromptRecord, PromptRegistry
 from gdpr_gap.result_cache import CacheError, CacheKey, ResultCache, make_cache_key
+from gdpr_gap.retrieval import RetrievalBaseline, RetrievalError, retrieve_baseline
 from gdpr_gap.sampling import (
     SamplingError,
     load_gold_manifest,
@@ -25,6 +33,10 @@ from gdpr_gap.segmentation import SegmentationError, segment_passages
 __version__ = "0.1.0"
 
 __all__ = [
+    "CalibrationError",
+    "CalibrationRecord",
+    "apply_calibration",
+    "calibrate_retrieval_threshold",
     "CacheError",
     "CitationReport",
     "check_citations",
@@ -47,6 +59,7 @@ __all__ = [
     "is_gap",
     "JudgeError",
     "judge_policy",
+    "load_calibration",
     "load_config",
     "load_corpus",
     "load_criteria",
@@ -61,6 +74,9 @@ __all__ = [
     "PromptError",
     "PromptRecord",
     "PromptRegistry",
+    "RetrievalBaseline",
+    "RetrievalError",
+    "retrieve_baseline",
     "ResultCache",
     "sample_descriptive_set",
     "sample_gold_set",

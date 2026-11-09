@@ -47,6 +47,7 @@ class PathsConfig(BaseModel):
     result_cache_dir: str = Field(min_length=1)
     prompts_dir: str = Field(min_length=1)
     criteria_path: str = Field(min_length=1)
+    calibration_dir: str = Field(min_length=1)
 
 
 class ModelConfig(BaseModel):

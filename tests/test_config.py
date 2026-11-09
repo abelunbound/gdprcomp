@@ -20,6 +20,7 @@ def _valid_payload(criteria_path: Path) -> dict[str, object]:
             "result_cache_dir": "data/result-cache",
             "prompts_dir": "prompts",
             "criteria_path": str(criteria_path),
+            "calibration_dir": "configs/calibration",
         },
         "model": {
             "provider": "claude",
@@ -67,6 +68,8 @@ def test_repository_config_loads() -> None:
     )
     assert config.seed == 42
     assert config.paths.result_cache_dir == "data/result-cache"
+    assert config.paths.calibration_dir == "configs/calibration"
+    assert config.thresholds.retrieval_similarity is None
     assert config.model.id == "claude-haiku-5-5"
     assert config.model.gold_id == "claude-sonnet-5-5"
     assert config.model.max_input_tokens == 200_000
