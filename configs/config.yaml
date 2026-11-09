@@ -9,6 +9,7 @@ paths:
   prompts_dir: prompts
   criteria_path: configs/criteria.yaml
   calibration_dir: configs/calibration
+  runs_dir: data/runs
 model:
   provider: claude
   name: Claude Haiku 5.5

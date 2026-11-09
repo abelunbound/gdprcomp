@@ -48,6 +48,7 @@ class PathsConfig(BaseModel):
     prompts_dir: str = Field(min_length=1)
     criteria_path: str = Field(min_length=1)
     calibration_dir: str = Field(min_length=1)
+    runs_dir: str = Field(min_length=1)
 
 
 class ModelConfig(BaseModel):

@@ -20,6 +20,7 @@ from gdpr_gap.judge import JudgeError, judge_policy
 from gdpr_gap.legal_bert import LegalBertBaseline, score_legal_bert
 from gdpr_gap.llm import LLMClient, ModelError, build_transport
 from gdpr_gap.logging import configure_logging, log_event, log_policy
+from gdpr_gap.manifest import ManifestError, RunManifest, load_run, record_run, reproduce
 from gdpr_gap.orchestrator import (
     DEFAULT_METHOD,
     OrchestratorError,
@@ -79,6 +80,11 @@ __all__ = [
     "load_criteria",
     "LegalBertBaseline",
     "load_gold_manifest",
+    "load_run",
+    "ManifestError",
+    "record_run",
+    "reproduce",
+    "RunManifest",
     "make_cache_key",
     "log_event",
     "LLMClient",

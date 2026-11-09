@@ -180,7 +180,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** app and batch call the same orchestrator; method recorded in every result.
 
-- [ ] **T28. Run manifest and result persistence**
+- [x] **T28. Run manifest and result persistence**
 
   Persist per-policy results, per-criterion verdicts, evidence, feedback, tokens, cost, runtime, model versions, prompt versions, library versions, seed, corpus snapshot, run ID.
 
