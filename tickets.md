@@ -212,7 +212,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** metrics reject inputs where predictions and labels come from the same system.
 
-- [ ] **T33. Bootstrap confidence intervals**
+- [x] **T33. Bootstrap confidence intervals**
 
   Resample policies (not judgements) for CIs with ~20 policies.
 

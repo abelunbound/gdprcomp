@@ -34,7 +34,14 @@ from gdpr_gap.legal_bert import LegalBertBaseline, score_legal_bert
 from gdpr_gap.llm import LLMClient, ModelError, build_transport
 from gdpr_gap.logging import configure_logging, log_event, log_policy
 from gdpr_gap.manifest import ManifestError, RunManifest, load_run, record_run, reproduce
-from gdpr_gap.metrics import ClassificationReport, MetricsError, classification_metrics
+from gdpr_gap.metrics import (
+    BootstrapReport,
+    ClassificationReport,
+    MetricsError,
+    bootstrap_intervals,
+    classification_metrics,
+    format_bootstrap,
+)
 from gdpr_gap.orchestrator import (
     DEFAULT_METHOD,
     OrchestratorError,
@@ -88,8 +95,11 @@ __all__ = [
     "import_annotations",
     "merge_annotations",
     "MetricsError",
+    "BootstrapReport",
     "ClassificationReport",
+    "bootstrap_intervals",
     "classification_metrics",
+    "format_bootstrap",
     "CalibrationError",
     "CalibrationRecord",
     "apply_calibration",

@@ -2,11 +2,13 @@
 
 Gap scores use is_gap. The three-class scores use Yes, Somewhat, and No.
 Labels are model-produced. Predictions and labels from the same model are
-rejected before any score is computed.
+rejected before any score is computed. Bootstrap intervals resample policies
+with replacement and keep every judgement from a drawn policy together.
 """
 
 from __future__ import annotations
 
+import random
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -80,6 +82,39 @@ class ClassificationReport(BaseModel):
         return self
 
 
+class StatisticInterval(BaseModel):
+    """Point estimate and percentile interval. The estimate may sit outside the interval."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    estimate: float
+    lower: float
+    upper: float
+
+
+class BootstrapReport(BaseModel):
+    """Policy-resampled intervals for gap F1, macro-F1, and weighted kappa."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    prediction_model_id: str = Field(min_length=1)
+    label_model_id: str = Field(min_length=1)
+    label_source: Literal["model-produced"] = LABEL_SOURCE
+    seed: int = Field(ge=0)
+    resamples: int = Field(ge=1)
+    level: float = Field(gt=0, lt=1)
+    policy_count: int = Field(ge=2)
+    gap_f1: StatisticInterval
+    macro_f1: StatisticInterval
+    weighted_kappa: StatisticInterval
+
+    @model_validator(mode="after")
+    def models_differ(self) -> BootstrapReport:
+        if self.prediction_model_id == self.label_model_id:
+            raise ValueError("predictions and labels come from the same system")
+        return self
+
+
 def classification_metrics(
     predictions: list[VerdictPair],
     labels: list[VerdictPair],
@@ -92,12 +127,12 @@ def classification_metrics(
         raise MetricsError("Predictions and labels come from the same system.")
     paired = _pair(predictions, labels)
     by_criterion: dict[str, list[tuple[Verdict, Verdict]]] = {}
-    for criterion_id, gold, predicted in paired:
+    for _policy_id, criterion_id, gold, predicted in paired:
         by_criterion.setdefault(criterion_id, []).append((gold, predicted))
     criteria = [
         _criterion(criterion_id, rows) for criterion_id, rows in sorted(by_criterion.items())
     ]
-    overall = _block([(gold, predicted) for _criterion, gold, predicted in paired])
+    overall = _block([(gold, predicted) for _policy_id, _criterion, gold, predicted in paired])
     return ClassificationReport(
         prediction_model_id=prediction_model_id,
         label_model_id=label_model_id,
@@ -106,20 +141,140 @@ def classification_metrics(
     )
 
 
+def bootstrap_intervals(
+    predictions: list[VerdictPair],
+    labels: list[VerdictPair],
+    *,
+    prediction_model_id: str,
+    label_model_id: str,
+    seed: int,
+    resamples: int = 1000,
+    level: float = 0.95,
+) -> BootstrapReport:
+    """Resample policies with replacement and report percentile intervals."""
+    scored = classification_metrics(
+        predictions,
+        labels,
+        prediction_model_id=prediction_model_id,
+        label_model_id=label_model_id,
+    )
+    _require_bootstrap(seed, resamples, level)
+    grouped = _rows_by_policy(predictions, labels)
+    if len(grouped) < 2:
+        raise MetricsError("Bootstrap needs at least two policies.")
+    draws = policy_draws(list(grouped), seed=seed, resamples=resamples)
+    gap_f1: list[float] = []
+    macro_f1: list[float] = []
+    weighted_kappa: list[float] = []
+    for draw in draws:
+        block = _block(expand_policy_draw(draw, grouped))
+        gap_f1.append(block.gap.f1)
+        macro_f1.append(block.macro_f1)
+        weighted_kappa.append(block.weighted_kappa)
+    tail = (1 - level) / 2
+    return BootstrapReport(
+        prediction_model_id=prediction_model_id,
+        label_model_id=label_model_id,
+        seed=seed,
+        resamples=resamples,
+        level=level,
+        policy_count=len(grouped),
+        gap_f1=_interval(scored.overall.gap.f1, gap_f1, tail),
+        macro_f1=_interval(scored.overall.macro_f1, macro_f1, tail),
+        weighted_kappa=_interval(scored.overall.weighted_kappa, weighted_kappa, tail),
+    )
+
+
+def policy_draws(policy_ids: list[str], *, seed: int, resamples: int) -> list[tuple[str, ...]]:
+    """Draw policy ids with replacement. Each draw has one copy per policy."""
+    _require_bootstrap(seed, resamples, 0.95)
+    if len(policy_ids) < 2:
+        raise MetricsError("Bootstrap needs at least two policies.")
+    generator = random.Random(seed)
+    width = len(policy_ids)
+    return [tuple(generator.choices(policy_ids, k=width)) for _index in range(resamples)]
+
+
+def expand_policy_draw(
+    draw: tuple[str, ...],
+    rows_by_policy: dict[str, list[tuple[Verdict, Verdict]]],
+) -> list[tuple[Verdict, Verdict]]:
+    """Repeat every judgement of each drawn policy. Other policies are left out."""
+    expanded: list[tuple[Verdict, Verdict]] = []
+    for policy_id in draw:
+        expanded.extend(rows_by_policy[policy_id])
+    return expanded
+
+
+def format_bootstrap(report: BootstrapReport) -> str:
+    """Render the policy count and the three percentile intervals."""
+    percent = round(report.level * 100)
+    return "\n".join(
+        [
+            f"{report.policy_count} policies",
+            (f"Gap F1 {percent}% interval: {report.gap_f1.lower:.3f} to {report.gap_f1.upper:.3f}"),
+            (
+                f"Macro-F1 {percent}% interval: "
+                f"{report.macro_f1.lower:.3f} to {report.macro_f1.upper:.3f}"
+            ),
+            (
+                f"Weighted kappa {percent}% interval: "
+                f"{report.weighted_kappa.lower:.3f} to {report.weighted_kappa.upper:.3f}"
+            ),
+        ]
+    )
+
+
+def _require_bootstrap(seed: int, resamples: int, level: float) -> None:
+    if seed < 0:
+        raise MetricsError("Seed must be zero or greater.")
+    if resamples < 1:
+        raise MetricsError("Resamples must be at least 1.")
+    if not 0 < level < 1:
+        raise MetricsError("Level must be between 0 and 1.")
+
+
+def _rows_by_policy(
+    predictions: list[VerdictPair],
+    labels: list[VerdictPair],
+) -> dict[str, list[tuple[Verdict, Verdict]]]:
+    grouped: dict[str, list[tuple[Verdict, Verdict]]] = {}
+    for policy_id, _criterion_id, gold, predicted in _pair(predictions, labels):
+        grouped.setdefault(policy_id, []).append((gold, predicted))
+    return grouped
+
+
+def _interval(estimate: float, samples: list[float], tail: float) -> StatisticInterval:
+    return StatisticInterval(
+        estimate=estimate,
+        lower=_percentile(samples, tail),
+        upper=_percentile(samples, 1 - tail),
+    )
+
+
+def _percentile(values: list[float], fraction: float) -> float:
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * fraction
+    lower = int(position)
+    upper = min(lower + 1, len(ordered) - 1)
+    weight = position - lower
+    return ordered[lower] * (1 - weight) + ordered[upper] * weight
+
+
 def _pair(
     predictions: list[VerdictPair],
     labels: list[VerdictPair],
-) -> list[tuple[str, Verdict, Verdict]]:
+) -> list[tuple[str, str, Verdict, Verdict]]:
     if not predictions or not labels:
         raise MetricsError("Metrics need both predictions and labels.")
     predicted = _index(predictions, "prediction")
     gold = _index(labels, "label")
     if set(predicted) != set(gold):
         raise MetricsError("Predictions and labels must cover the same policies and criteria.")
-    paired: list[tuple[str, Verdict, Verdict]] = []
+    paired: list[tuple[str, str, Verdict, Verdict]] = []
     for policy_id, criterion_id in sorted(gold):
         key = (policy_id, criterion_id)
-        paired.append((criterion_id, gold[key], predicted[key]))
+        paired.append((policy_id, criterion_id, gold[key], predicted[key]))
     return paired
 
 
