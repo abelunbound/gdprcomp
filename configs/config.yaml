@@ -6,7 +6,7 @@ paths:
   data_dir: data
   corpus_cache_dir: data/corpus
   prompts_dir: prompts
-  criteria_path: config/criteria_legal_basis.json
+  criteria_path: configs/criteria.yaml
 model:
   provider: claude
   name: Claude Haiku 5.5

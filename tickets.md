@@ -1,5 +1,7 @@
 # Tickets
 
+Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8, T38 and T39, then Phase 10.
+
 ## Phase 0 — Scaffold
 
 - [x] **T01. Repo and package skeleton**
@@ -28,7 +30,7 @@
 
 ## Phase 1 — Domain logic (pure, no models)
 
-- [ ] **T05. 22-criterion config**
+- [x] **T05. 22-criterion config**
 
   Single source of truth (`configs/criteria.yaml`): criterion ID, name, legal basis, condition sentence, weight, display order.
 

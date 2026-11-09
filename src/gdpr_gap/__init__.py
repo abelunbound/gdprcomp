@@ -1,18 +1,22 @@
 """GDPR compliance gap evaluator."""
 
 from gdpr_gap.config import ConfigError, MissingSecretError, load_config
+from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
 from gdpr_gap.logging import configure_logging, log_event, log_policy
 
 __version__ = "0.1.0"
 
 __all__ = [
     "ConfigError",
+    "CriteriaError",
     "MissingSecretError",
     "configure_logging",
     "load_config",
+    "load_criteria",
     "log_event",
     "log_policy",
     "ping",
+    "summary_table",
 ]
 
 

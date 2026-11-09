@@ -1,0 +1,372 @@
+meta:
+  description: Legal basis mapping for the 22 GDPR-derived privacy-policy criteria used by the GDPR Compliance
+    Gap Evaluator.
+  instrument: Regulation (EU) 2016/679 (GDPR), as retained in UK law as the UK GDPR and supplemented by
+    the Data Protection Act 2018.
+  caveat: A privacy policy is a transparency document, not the processing itself. Many criteria describe
+    controller obligations that the policy should reflect, not obligations the policy itself discharges.
+    This mapping identifies the provision that gives rise to the obligation, not a finding of legal compliance.
+  duplicate_note: '''Data Processing Records'' and ''Records of Processing Activities'' both derive from
+    Article 30 GDPR. They are retained as separate criteria in the original list but should be collapsed
+    or explicitly distinguished in implementation.'
+criteria:
+- id: data_processing_records
+  name: Data Processing Records
+  condition: The policy should document how data processing activities are recorded - purposes, data categories,
+    recipients.
+  weight: 1
+  display_order: 1
+  legal_basis:
+  - instrument: GDPR
+    article: Article 30
+    title: Records of processing activities
+  related_provisions:
+  - Article 5(2) (accountability)
+  - Article 24(1) (controller responsibility)
+  note: Article 30 requires controllers and processors to maintain records of processing activities, including
+    purposes, categories of data and recipients. This is the same legal basis as 'Records of Processing
+    Activities'; the two criteria are duplicative.
+- id: data_subject_rights
+  name: Data Subject Rights
+  condition: The policy should address and respect data subjects' rights in processing their data.
+  weight: 1
+  display_order: 2
+  legal_basis:
+  - instrument: GDPR
+    article: Articles 12–22
+    title: Chapter III — Rights of the data subject
+  related_provisions:
+  - Article 12 (transparency and modalities)
+  - Articles 15–22 (access, rectification, erasure, restriction, portability, objection, automated decisions)
+  note: The policy should explain how data subjects can exercise their rights. Article 12 governs the
+    manner; Articles 15–22 set out the substantive rights.
+- id: consent_mechanisms
+  name: Consent Mechanisms
+  condition: The policy should detail procedures for obtaining, recording, and managing consent for data
+    processing.
+  weight: 1
+  display_order: 3
+  legal_basis:
+  - instrument: GDPR
+    article: Article 4(11)
+    title: Definition of consent
+  - instrument: GDPR
+    article: Article 7
+    title: Conditions for consent
+  related_provisions:
+  - Article 6(1)(a) (consent as a lawful basis)
+  - Recital 32 (freely given, specific, informed, unambiguous)
+  - Recital 42 (burden of proof)
+  note: Article 7 requires the controller to demonstrate consent, to allow withdrawal and to ensure consent
+    is freely given. The policy should describe the consent mechanism, not merely state that consent is
+    used.
+- id: purpose_limitation
+  name: Purpose Limitation
+  condition: The policy should define lawful purposes for data collection and processing to avoid misuse.
+  weight: 1
+  display_order: 4
+  legal_basis:
+  - instrument: GDPR
+    article: Article 5(1)(b)
+    title: Purpose limitation principle
+  related_provisions:
+  - Article 6(4) (compatibility test for further processing)
+  - Article 13(3) / 14(3) (new purpose notification)
+  note: Personal data must be collected for specified, explicit and legitimate purposes and not further
+    processed in an incompatible manner. The policy should define those purposes.
+- id: data_minimisation
+  name: Data Minimisation
+  condition: The policy should emphasize collecting only necessary personal data for specified purposes.
+  weight: 1
+  display_order: 5
+  legal_basis:
+  - instrument: GDPR
+    article: Article 5(1)(c)
+    title: Data minimisation principle
+  related_provisions:
+  - Article 25 (data protection by design and by default)
+  - Article 6(1) (necessity for lawful basis)
+  note: Personal data must be adequate, relevant and limited to what is necessary in relation to the purposes.
+    The policy should state that only necessary data are collected.
+- id: data_security_measures
+  name: Data Security Measures
+  condition: The policy should outline security steps -encryption, access controls - for protecting personal
+    data.
+  weight: 1
+  display_order: 6
+  legal_basis:
+  - instrument: GDPR
+    article: Article 5(1)(f)
+    title: Integrity and confidentiality principle
+  - instrument: GDPR
+    article: Article 32
+    title: Security of processing
+  related_provisions:
+  - Article 25 (privacy by design)
+  - Article 28(3)(c) (processor security obligations)
+  - Article 33 (breach notification)
+  note: Article 32 requires appropriate technical and organisational measures, including encryption and
+    access controls where appropriate. The policy should outline those measures at a meaningful level.
+- id: data_breach_response
+  name: Data Breach Response
+  condition: The policy should specify procedures for reporting and responding to data breaches.
+  weight: 1
+  display_order: 7
+  legal_basis:
+  - instrument: GDPR
+    article: Article 33
+    title: Notification of a personal data breach to the supervisory authority
+  - instrument: GDPR
+    article: Article 34
+    title: Communication of a personal data breach to the data subject
+  related_provisions:
+  - Article 4(12) (definition of personal data breach)
+  - Article 33(5) (documentation of breaches)
+  - Article 32 (security of processing)
+  note: Article 33 requires notification to the supervisory authority within 72 hours where feasible;
+    Article 34 requires communication to data subjects where there is high risk. The policy should describe
+    the response procedure.
+- id: data_protection_impact_assessments
+  name: Data Protection Impact Assessments
+  condition: The policy should explain when and how DPIAs are conducted for high-risk activities.
+  weight: 1
+  display_order: 8
+  legal_basis:
+  - instrument: GDPR
+    article: Article 35
+    title: Data protection impact assessment
+  related_provisions:
+  - Article 36 (prior consultation)
+  - Article 25 (privacy by design)
+  - Article 35(3) (mandatory DPIA cases)
+  note: A DPIA is required where processing is likely to result in a high risk to rights and freedoms,
+    particularly using new technologies. The policy should explain when and how DPIAs are conducted.
+- id: cross_border_data_transfers
+  name: Cross-Border Data Transfers
+  condition: The policy should address data protection during international data transfers.
+  weight: 1
+  display_order: 9
+  legal_basis:
+  - instrument: GDPR
+    article: Chapter V, Articles 44–49
+    title: Transfers of personal data to third countries or international organisations
+  related_provisions:
+  - Article 44 (general principle for transfers)
+  - Article 45 (adequacy decisions)
+  - Article 46 (appropriate safeguards)
+  - Article 47 (binding corporate rules)
+  - Article 49 (derogations for specific situations)
+  note: Article 44 permits a transfer only if the Chapter V conditions are met. The policy should address
+    international transfers and the safeguard relied on.
+- id: records_of_processing_activities
+  name: Records of Processing Activities
+  condition: The policy should maintain and reference records of processing activities as required.
+  weight: 1
+  display_order: 10
+  legal_basis:
+  - instrument: GDPR
+    article: Article 30
+    title: Records of processing activities
+  related_provisions:
+  - Article 5(2) (accountability)
+  - Article 30(5) (limited exemption for small organisations)
+  note: Duplicates 'Data Processing Records'. Both criteria map to Article 30. Implementers should either
+    merge them or distinguish one as the policy commitment and the other as the operational record-keeping
+    obligation.
+- id: data_protection_officer
+  name: Data Protection Officer
+  condition: The policy should state the appointment of a Data Protection Officer or contact.
+  weight: 1
+  display_order: 11
+  legal_basis:
+  - instrument: GDPR
+    article: Article 37
+    title: Designation of the data protection officer
+  - instrument: GDPR
+    article: Article 38
+    title: Position of the data protection officer
+  - instrument: GDPR
+    article: Article 39
+    title: Tasks of the data protection officer
+  related_provisions:
+  - Recital 97 (DPO designation criteria)
+  - Article 37(1) (mandatory designation cases)
+  note: A DPO is mandatory only in specified cases (public authority, large-scale systematic monitoring,
+    large-scale special-category processing). The policy should state whether a DPO is appointed and provide
+    contact details where applicable.
+- id: third_party_data_processors
+  name: Third-Party Data Processors
+  condition: The policy should cover use of third-party processors and compliance agreements.
+  weight: 1
+  display_order: 12
+  legal_basis:
+  - instrument: GDPR
+    article: Article 28
+    title: Processor
+  related_provisions:
+  - Article 29 (processing under the authority of controller or processor)
+  - Article 28(3) (mandatory contract terms)
+  - Article 28(2) (sub-processor authorisation)
+  note: Article 28 requires a written contract or other legal act with processors, containing the mandatory
+    terms in Article 28(3). The policy should disclose the use of processors and the safeguards applied.
+- id: training_and_awareness
+  name: Training and Awareness
+  condition: The policy should highlight employee training on data protection importance.
+  weight: 1
+  display_order: 13
+  legal_basis:
+  - instrument: GDPR
+    article: Article 39(1)(b)
+    title: Tasks of the data protection officer — awareness-raising and training
+  related_provisions:
+  - Article 32(4) (organisational measures, including staff training)
+  - Article 5(2) (accountability)
+  - Article 47(2)(j) (training under binding corporate rules, where relevant)
+  note: There is no single standalone 'training' article for all controllers. Article 39(1)(b) places
+    training within the DPO's tasks; Article 32(4) treats staff training as part of appropriate organisational
+    security measures. The policy should state that staff are trained.
+- id: data_subject_requests
+  name: Data Subject Requests
+  condition: The policy should outline procedures for handling data subject requests effectively.
+  weight: 1
+  display_order: 14
+  legal_basis:
+  - instrument: GDPR
+    article: Article 12(3)–(4)
+    title: Time limits and modalities for responding to data subject requests
+  - instrument: GDPR
+    article: Articles 15–22
+    title: Substantive data subject rights
+  related_provisions:
+  - Article 12(5) (manifestly unfounded or excessive requests)
+  - Article 12(6) (identity verification)
+  note: Article 12(3) requires a response without undue delay and in any event within one month. The policy
+    should explain how requests are submitted and handled.
+- id: data_retention_and_deletion
+  name: Data Retention and Deletion
+  condition: The policy should define data retention periods and secure deletion procedures.
+  weight: 1
+  display_order: 15
+  legal_basis:
+  - instrument: GDPR
+    article: Article 5(1)(e)
+    title: Storage limitation principle
+  related_provisions:
+  - Article 17 (right to erasure / 'right to be forgotten')
+  - Article 30(1)(f) (records should include envisaged time limits for erasure)
+  - Article 19 (notification of erasure to recipients)
+  note: Article 5(1)(e) requires that data be kept no longer than necessary. The policy should define
+    retention periods and secure deletion procedures.
+- id: privacy_by_design_and_default
+  name: Privacy by Design and Default
+  condition: The policy should incorporate privacy principles into all data processing.
+  weight: 1
+  display_order: 16
+  legal_basis:
+  - instrument: GDPR
+    article: Article 25
+    title: Data protection by design and by default
+  related_provisions:
+  - Article 5(1) (principles)
+  - Recital 78 (design and default measures)
+  note: Article 25 requires technical and organisational measures designed to implement data protection
+    principles and to process only necessary data by default. The policy should state that privacy is
+    built into processing.
+- id: updates_and_revisions
+  name: Updates and Revisions
+  condition: The policy should specify how policy updates and revisions are managed and communicated.
+  weight: 1
+  display_order: 17
+  legal_basis:
+  - instrument: GDPR
+    article: Article 12(1)
+    title: Transparent information and communication
+  related_provisions:
+  - Article 5(1)(a) (lawfulness, fairness and transparency)
+  - Article 13(3) / 14(3) (notification of new purposes)
+  - Article 5(2) (accountability)
+  note: 'The GDPR does not prescribe a specific ''policy updates'' procedure. The obligation is derived
+    from transparency and accountability: changes that affect processing should be communicated to data
+    subjects. The policy should describe how revisions are made and notified.'
+- id: regulatory_reporting
+  name: Regulatory Reporting
+  condition: The policy should address obligations for reporting data processing to authorities.
+  weight: 1
+  display_order: 18
+  legal_basis:
+  - instrument: GDPR
+    article: Article 31
+    title: Cooperation with the supervisory authority
+  related_provisions:
+  - Article 33 (breach notification to the supervisory authority)
+  - Article 36 (prior consultation)
+  - Article 30 (records made available to the supervisory authority on request)
+  note: Article 31 requires controllers and processors to cooperate with the supervisory authority on
+    request. The policy should acknowledge reporting and cooperation obligations.
+- id: incident_documentation
+  name: Incident Documentation
+  condition: The policy should mandate documentation of incidents and response actions taken.
+  weight: 1
+  display_order: 19
+  legal_basis:
+  - instrument: GDPR
+    article: Article 33(5)
+    title: Documentation of personal data breaches
+  related_provisions:
+  - Article 5(2) (accountability)
+  - Article 30 (records of processing)
+  - Article 32 (security of processing)
+  note: Article 33(5) requires the controller to document all personal data breaches, including the facts,
+    effects and remedial action taken. This documentation enables the supervisory authority to verify
+    compliance.
+- id: accountability_and_governance
+  name: Accountability and Governance
+  condition: The policy should outline measures demonstrating compliance and governance.
+  weight: 1
+  display_order: 20
+  legal_basis:
+  - instrument: GDPR
+    article: Article 5(2)
+    title: Accountability principle
+  - instrument: GDPR
+    article: Article 24
+    title: Responsibility of the controller
+  related_provisions:
+  - Article 24(1) (appropriate technical and organisational measures)
+  - Article 24(2) (data protection policies)
+  - Article 24(3) (certification mechanisms)
+  note: Article 5(2) makes the controller responsible for, and able to demonstrate, compliance. Article
+    24 gives that principle operational effect. The policy should outline governance measures demonstrating
+    compliance.
+- id: policy_accessibility
+  name: Policy Accessibility
+  condition: The policy should ensure easy access to GDPR policy documents for stakeholders.
+  weight: 1
+  display_order: 21
+  legal_basis:
+  - instrument: GDPR
+    article: Article 12(1)
+    title: Transparent information, communication and modalities
+  related_provisions:
+  - Articles 13–14 (information to be provided)
+  - Recital 39 (transparency)
+  - Article 12(1) (concise, transparent, intelligible and easily accessible form; clear and plain language)
+  note: Article 12(1) requires information to be provided in a concise, transparent, intelligible and
+    easily accessible form, using clear and plain language. The policy should be easy for stakeholders
+    to find and understand.
+- id: legal_basis_for_processing
+  name: Legal Basis for Processing
+  condition: The policy should provide clear explanations of legal grounds for data processing.
+  weight: 1
+  display_order: 22
+  legal_basis:
+  - instrument: GDPR
+    article: Article 6
+    title: Lawfulness of processing
+  related_provisions:
+  - Article 9 (special categories of personal data)
+  - Article 6(1)(a)–(f) (consent, contract, legal obligation, vital interests, public task, legitimate
+    interests)
+  - Article 13(1)(c) / 14(1)(c) (information about legal basis)
+  note: Article 6 sets out the six lawful bases for processing. For special categories, Article 9 imposes
+    additional conditions. The policy should explain the legal grounds relied on for each processing purpose.
