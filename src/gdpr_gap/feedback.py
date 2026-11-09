@@ -81,33 +81,56 @@ def suggest_fixes(
     logger: logging.Logger | None = None,
 ) -> list[CriterionFeedback]:
     """Return one suggestion per gap. The judgement object is not modified."""
-    criteria = load_criteria(config.paths.criteria_path).criteria
-    catalog = {item.id: item.condition for item in criteria}
-    prompt = PromptRegistry(config.paths.prompts_dir).load(FEEDBACK_PROMPT_ID)
     fixes: list[CriterionFeedback] = []
     for result in judgement.verdicts:
         verdict = result.judgement.verdict
         if not is_gap(verdict):
             continue
-        criterion_id = result.judgement.criterion_id
-        rendered = PromptRegistry(config.paths.prompts_dir).render(
-            prompt.prompt_id,
-            prompt.version,
-            criterion_id=criterion_id,
-            condition=catalog[criterion_id],
-            policy_text=policy_text,
-            verdict=verdict,
-            justification=result.judgement.justification,
+        fixes.append(
+            suggest_fix(
+                policy_text,
+                result.judgement.criterion_id,
+                verdict,
+                result.judgement.justification,
+                config,
+                client,
+                logger=logger,
+            )
         )
-        _require_within_limit(rendered.text, policy_text, config, logger)
-        text, _usage, _model_id = client.complete(
-            rendered.text,
-            prompt_id=rendered.prompt_id,
-            prompt_version=rendered.version,
-            model_id=config.model.id,
-        )
-        fixes.append(_parse_feedback(text, criterion_id))
     return fixes
+
+
+def suggest_fix(
+    policy_text: str,
+    criterion_id: str,
+    verdict: str,
+    justification: str,
+    config: AppConfig,
+    client: LLMClient,
+    *,
+    logger: logging.Logger | None = None,
+) -> CriterionFeedback:
+    """Suggest one fix. The recorded verdict is not changed."""
+    criteria = load_criteria(config.paths.criteria_path).criteria
+    catalog = {item.id: item.condition for item in criteria}
+    prompt = PromptRegistry(config.paths.prompts_dir).load(FEEDBACK_PROMPT_ID)
+    rendered = PromptRegistry(config.paths.prompts_dir).render(
+        prompt.prompt_id,
+        prompt.version,
+        criterion_id=criterion_id,
+        condition=catalog[criterion_id],
+        policy_text=policy_text,
+        verdict=verdict,
+        justification=justification,
+    )
+    _require_within_limit(rendered.text, policy_text, config, logger)
+    text, _usage, _model_id = client.complete(
+        rendered.text,
+        prompt_id=rendered.prompt_id,
+        prompt_version=rendered.version,
+        model_id=config.model.id,
+    )
+    return _parse_feedback(text, criterion_id)
 
 
 def check_citations(

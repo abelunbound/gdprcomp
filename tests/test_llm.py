@@ -80,6 +80,19 @@ def test_valid_json_is_parsed_and_token_use_is_logged(caplog: pytest.LogCaptureF
     assert "model_call" in events
 
 
+def test_cut_off_reply_says_the_json_was_unfinished() -> None:
+    truncated = RawCompletion(
+        text='{"criterion_id": "consent_mechanisms", "verdict": "Yes"',
+        input_tokens=12,
+        output_tokens=800,
+        stop_reason="max_tokens",
+    )
+    client = LLMClient(_config(), FakeTransport([truncated]))
+
+    with pytest.raises(ModelError, match="cut off"):
+        _judge(client)
+
+
 def test_fenced_json_is_accepted_and_bad_verdict_is_not_retried() -> None:
     fenced = "```json\n" + json.dumps(VALID) + "\n```"
     assert parse_judgement(fenced).verdict == "Yes"

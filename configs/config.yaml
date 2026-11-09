@@ -15,7 +15,7 @@ model:
   gold_id: claude-sonnet-5-5
   timeout_seconds: 30
   max_retries: 3
-  max_output_tokens: 800
+  max_output_tokens: 8000
   max_input_tokens: 200000
 scoring:
   yes_score: 1

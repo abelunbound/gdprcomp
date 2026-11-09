@@ -67,6 +67,7 @@ class RawCompletion(BaseModel):
     text: str
     input_tokens: int = Field(ge=0)
     output_tokens: int = Field(ge=0)
+    stop_reason: str | None = None
 
 
 class ChatTransport(Protocol):
@@ -112,15 +113,20 @@ class LLMClient:
         try:
             judgement = parse_judgement(raw.text)
         except ModelError as exc:
+            reason = (
+                "Model response was cut off before the JSON object finished."
+                if _output_was_cut_off(raw.stop_reason)
+                else str(exc)
+            )
             self._log(
                 "model_response_invalid",
                 model_id=chosen_model,
                 prompt_id=prompt_id,
                 prompt_version=prompt_version,
                 attempt=1,
-                reason=str(exc),
+                reason=reason,
             )
-            raise
+            raise ModelError(reason) from exc
         usage = TokenUse(
             input_tokens=raw.input_tokens,
             output_tokens=raw.output_tokens,
@@ -266,10 +272,12 @@ class AnthropicTransport:
         text = _anthropic_text(content)
         if text is None:
             raise ModelError("Anthropic response content has no text.")
+        stop_reason = payload.get("stop_reason")
         return RawCompletion(
             text=text,
             input_tokens=_token_count(usage.get("input_tokens")),
             output_tokens=_token_count(usage.get("output_tokens")),
+            stop_reason=stop_reason if isinstance(stop_reason, str) else None,
         )
 
 
@@ -304,10 +312,12 @@ class OpenAITransport:
         content = message.get("content") if isinstance(message, dict) else None
         if not isinstance(content, str):
             raise ModelError("OpenAI response message has no text.")
+        finish_reason = choices[0].get("finish_reason") if isinstance(choices[0], dict) else None
         return RawCompletion(
             text=content,
             input_tokens=_token_count(usage.get("prompt_tokens")),
             output_tokens=_token_count(usage.get("completion_tokens")),
+            stop_reason=finish_reason if isinstance(finish_reason, str) else None,
         )
 
 
@@ -340,6 +350,10 @@ def _ssl_context() -> ssl.SSLContext:
             context.load_verify_locations(path)
             return context
     return context
+
+
+def _output_was_cut_off(stop_reason: str | None) -> bool:
+    return stop_reason in {"max_tokens", "length"}
 
 
 def _json_object(text: str) -> object:

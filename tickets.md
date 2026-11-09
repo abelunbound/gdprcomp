@@ -232,7 +232,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
 ## Phase 9 — Dash app
 
-- [ ] **T36. Single-policy view**
+- [x] **T36. Single-policy view**
 
   Default to whole-policy LLM; show score/100, 220-point score, band, per-criterion verdict, evidence, and separate feedback for Somewhat/No.
 
