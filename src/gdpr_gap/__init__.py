@@ -20,6 +20,13 @@ from gdpr_gap.calibration import (
     calibrate_retrieval_threshold,
     load_calibration,
 )
+from gdpr_gap.comparison import (
+    ComparisonError,
+    ComparisonReport,
+    compare_methods,
+    export_comparison,
+    format_comparison,
+)
 from gdpr_gap.config import ConfigError, MissingSecretError, load_config
 from gdpr_gap.corpus import CorpusError, load_corpus
 from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
@@ -100,6 +107,11 @@ __all__ = [
     "bootstrap_intervals",
     "classification_metrics",
     "format_bootstrap",
+    "ComparisonError",
+    "ComparisonReport",
+    "compare_methods",
+    "export_comparison",
+    "format_comparison",
     "CalibrationError",
     "CalibrationRecord",
     "apply_calibration",

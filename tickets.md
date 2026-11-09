@@ -218,7 +218,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** CIs are reported and seed behaviour is tested.
 
-- [ ] **T34. Method comparison report**
+- [x] **T34. Method comparison report**
 
   Compare whole-policy LLM (main) vs hybrid vs Legal-BERT only (vs alternative embeddings) on the same labelled policies: accuracy, runtime, cost, repeat consistency.
 
