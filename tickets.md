@@ -194,7 +194,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
 ## Phase 8 — Gold set and validation
 
-- [ ] **T30. Annotation schema and tooling**
+- [x] **T30. Annotation schema and tooling**
 
   Blind, double-rated, adjudicated labelling: policy ID, criterion ID, annotator ID, verdict, notes, timestamp, adjudicated verdict; import/export.
 

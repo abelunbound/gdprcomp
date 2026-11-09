@@ -1,5 +1,17 @@
 """GDPR compliance gap evaluator."""
 
+from gdpr_gap.annotation import (
+    AnnotationError,
+    AnnotationSet,
+    add_annotation,
+    adjudicate,
+    adopt_agreement,
+    export_annotations,
+    export_blind,
+    final_labels,
+    import_annotations,
+    merge_annotations,
+)
 from gdpr_gap.calibration import (
     CalibrationError,
     CalibrationRecord,
@@ -51,6 +63,16 @@ from gdpr_gap.segmentation import SegmentationError, segment_passages
 __version__ = "0.1.0"
 
 __all__ = [
+    "AnnotationError",
+    "AnnotationSet",
+    "add_annotation",
+    "adjudicate",
+    "adopt_agreement",
+    "export_annotations",
+    "export_blind",
+    "final_labels",
+    "import_annotations",
+    "merge_annotations",
     "CalibrationError",
     "CalibrationRecord",
     "apply_calibration",
