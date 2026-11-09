@@ -160,7 +160,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** hybrid runs on the same labelled policies as the main method and retrieval misses are measurable.
 
-- [ ] **T25. Legal-BERT-only comparator**
+- [x] **T25. Legal-BERT-only comparator**
 
   Similarity-only baseline with a distinct output schema labelled “baseline/retrieval signal”.
 

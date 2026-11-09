@@ -17,6 +17,7 @@ from gdpr_gap.feedback import CitationReport, check_citations, evaluate_policy, 
 from gdpr_gap.gaps import gap_ids, is_gap
 from gdpr_gap.hybrid import HybridError, HybridJudgement, judge_hybrid
 from gdpr_gap.judge import JudgeError, judge_policy
+from gdpr_gap.legal_bert import LegalBertBaseline, score_legal_bert
 from gdpr_gap.llm import LLMClient, ModelError, build_transport
 from gdpr_gap.logging import configure_logging, log_event, log_policy
 from gdpr_gap.prompts import PromptError, PromptRecord, PromptRegistry
@@ -67,6 +68,7 @@ __all__ = [
     "load_config",
     "load_corpus",
     "load_criteria",
+    "LegalBertBaseline",
     "load_gold_manifest",
     "make_cache_key",
     "log_event",
@@ -85,6 +87,7 @@ __all__ = [
     "sample_descriptive_set",
     "sample_gold_set",
     "segment_passages",
+    "score_legal_bert",
     "score_policy",
     "suggest_fixes",
     "SegmentationError",

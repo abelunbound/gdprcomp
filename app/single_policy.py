@@ -14,6 +14,7 @@ from dash.exceptions import PreventUpdate
 
 from gdpr_gap.config import AppConfig, load_config
 from gdpr_gap.criteria import Criterion, load_criteria
+from gdpr_gap.embeddings import EmbeddingClient, TextEncoder, load_legal_bert
 from gdpr_gap.feedback import (
     CriterionFeedback,
     PolicyReview,
@@ -23,6 +24,7 @@ from gdpr_gap.feedback import (
 )
 from gdpr_gap.gaps import is_gap
 from gdpr_gap.judge import WHOLE_POLICY_PROMPT_ID, PolicyJudgement, _verdict
+from gdpr_gap.legal_bert import LegalBertBaseline, LegalBertCriterion, score_legal_bert
 from gdpr_gap.llm import LLMClient, ModelResult, build_transport
 from gdpr_gap.prompts import PromptRegistry
 from gdpr_gap.single_policy import (
@@ -47,9 +49,12 @@ app.layout = html.Main(
         ),
         html.Button("Judge", id="judge", n_clicks=0),
         html.Button("Show sample", id="show-sample", n_clicks=0),
+        html.Button("Show retrieval signal", id="show-retrieval", n_clicks=0),
         html.P(id="progress"),
         html.Div(
-            html.P("Paste a policy and press Judge, or show the sample result."),
+            html.P(
+                "Paste a policy and press Judge, show the sample, or show the retrieval signal."
+            ),
             id="result",
         ),
         dcc.Store(id="job"),
@@ -64,6 +69,38 @@ def progress_message(kind: str, finished: int, total: int, name: str) -> str:
     if kind == "judge":
         return f"Judging {step} of {total}: {name}"
     return f"Writing feedback {step} of {total}: {name}"
+
+
+WHOLE_POLICY_METHOD = "Method: whole-policy LLM"
+RETRIEVAL_METHOD = "Method: legal-bert only"
+_encoder: TextEncoder | None = None
+
+
+def render_retrieval(baseline: LegalBertBaseline, names: dict[str, str]) -> list[Component]:
+    """Show similarity ranks. This is not a verdict and has no condition-met line."""
+    header: list[Component] = [
+        html.P("Signal: baseline/retrieval signal", id="signal"),
+        html.P("This is a retrieval signal, not an LLM verdict."),
+        html.P(f"Embedding: {baseline.model_name} @ {baseline.model_version}"),
+    ]
+    rows = [
+        _render_retrieval_row(index, row, names)
+        for index, row in enumerate(baseline.criteria, start=1)
+    ]
+    return header + rows
+
+
+def _render_retrieval_row(index: int, row: LegalBertCriterion, names: dict[str, str]) -> Component:
+    ranked = [html.Li(f"{passage.similarity:.3f} — {passage.text}") for passage in row.passages]
+    return html.Article(
+        [
+            html.H3(f"{index}. {names[row.criterion_id]}"),
+            html.P(f"Best similarity: {row.best_similarity:.3f}"),
+            html.P("Ranked passages:"),
+            html.Ol(ranked),
+        ],
+        id=f"retrieval-{row.criterion_id}",
+    )
 
 
 def render_result(display: SinglePolicyDisplay) -> list[Component]:
@@ -100,7 +137,9 @@ def render_criterion(row: CriterionDisplay) -> Component:
     Output("result", "children", allow_duplicate=True),
     Output("judge", "disabled", allow_duplicate=True),
     Output("show-sample", "disabled", allow_duplicate=True),
+    Output("show-retrieval", "disabled", allow_duplicate=True),
     Output("tick", "disabled", allow_duplicate=True),
+    Output("method", "children", allow_duplicate=True),
     Input("judge", "n_clicks"),
     Input("show-sample", "n_clicks"),
     State("policy-text", "value"),
@@ -110,17 +149,18 @@ def start_run(
     judge_clicks: int,
     sample_clicks: int,
     policy_text: str | None,
-) -> tuple[object, object, object, bool, bool, bool]:
+) -> tuple[object, object, object, bool, bool, bool, bool, str]:
     """Show the status line immediately, before any model call starts."""
     del judge_clicks, sample_clicks
     try:
         if ctx.triggered_id == "show-sample":
             sample = _sample()
-            return (*sample, True)
+            return (*sample, sample[3], True, WHOLE_POLICY_METHOD)
         started = _start(policy_text)
     except Exception as exc:
-        return None, "", html.P(f"Could not judge the policy: {exc}"), False, False, True
-    return (*started, started[0] is None)
+        message = html.P(f"Could not judge the policy: {exc}")
+        return None, "", message, False, False, False, True, WHOLE_POLICY_METHOD
+    return (*started, started[3], started[0] is None, WHOLE_POLICY_METHOD)
 
 
 @callback(
@@ -129,6 +169,7 @@ def start_run(
     Output("result", "children", allow_duplicate=True),
     Output("judge", "disabled", allow_duplicate=True),
     Output("show-sample", "disabled", allow_duplicate=True),
+    Output("show-retrieval", "disabled", allow_duplicate=True),
     Input("tick", "n_intervals"),
     State("job", "data"),
     running=[(Output("tick", "disabled", allow_duplicate=True), True, False)],
@@ -137,15 +178,59 @@ def start_run(
 def continue_run(
     tick: int,
     job: dict[str, object] | None,
-) -> tuple[object, object, object, bool, bool]:
+) -> tuple[object, object, object, bool, bool, bool]:
     """Judge one criterion or write one suggestion, then update the status line."""
     del tick
     if not job:
         raise PreventUpdate
     try:
-        return _advance(job)
+        advanced = _advance(job)
     except Exception as exc:
-        return None, "", html.P(f"Could not judge the policy: {exc}"), False, False
+        message = html.P(f"Could not judge the policy: {exc}")
+        return None, "", message, False, False, False
+    return (*advanced, advanced[3])
+
+
+@callback(
+    Output("result", "children", allow_duplicate=True),
+    Output("progress", "children", allow_duplicate=True),
+    Output("method", "children", allow_duplicate=True),
+    Input("show-retrieval", "n_clicks"),
+    State("policy-text", "value"),
+    running=[
+        (Output("show-retrieval", "disabled", allow_duplicate=True), True, False),
+        (Output("judge", "disabled", allow_duplicate=True), True, False),
+        (Output("show-sample", "disabled", allow_duplicate=True), True, False),
+    ],
+    prevent_initial_call=True,
+)
+def show_retrieval(
+    clicks: int,
+    policy_text: str | None,
+) -> tuple[object, str, str]:
+    """Score topical similarity. This callback never calls the LLM judge."""
+    del clicks
+    if policy_text is None or not policy_text.strip():
+        return html.P("Paste a policy first."), "", RETRIEVAL_METHOD
+    try:
+        config = load_config()
+        client = EmbeddingClient(config.embedding, _cached_encoder(config))
+        baseline = score_legal_bert(policy_text, config, client)
+        names = {item.id: item.name for item in _ordered(config)}
+    except Exception as exc:
+        message = html.P(f"Could not score the retrieval signal: {exc}")
+        return message, "", RETRIEVAL_METHOD
+    return render_retrieval(baseline, names), "", RETRIEVAL_METHOD
+
+
+def _cached_encoder(config: AppConfig) -> TextEncoder:
+    global _encoder
+    settings = config.embedding
+    loaded = _encoder
+    if loaded is None or loaded.name != settings.model_name or loaded.version != settings.revision:
+        loaded = load_legal_bert(settings, confirm=True)
+        _encoder = loaded
+    return loaded
 
 
 @callback(
