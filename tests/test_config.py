@@ -44,6 +44,7 @@ def _valid_payload(criteria_path: Path) -> dict[str, object]:
             "post_start": "2019-01-01",
             "post_end": "2019-12-31",
         },
+        "segmentation": {"passage_words": 120, "overlap_words": 20},
     }
 
 

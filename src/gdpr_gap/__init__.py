@@ -13,6 +13,7 @@ from gdpr_gap.sampling import (
     sample_gold_set,
 )
 from gdpr_gap.scoring import ScoringError, score_policy
+from gdpr_gap.segmentation import SegmentationError, segment_passages
 
 __version__ = "0.1.0"
 
@@ -36,7 +37,9 @@ __all__ = [
     "ping",
     "sample_descriptive_set",
     "sample_gold_set",
+    "segment_passages",
     "score_policy",
+    "SegmentationError",
     "SamplingError",
     "ScoringError",
     "summary_table",

@@ -74,7 +74,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** tests cover HTML, pasted text, empty page, and very long policy.
 
-- [ ] **T12. Segmentation (comparators only)**
+- [x] **T12. Segmentation (comparators only)**
 
   ~120-word overlapping passages with configured overlap; never used to gate the whole-policy LLM.
 

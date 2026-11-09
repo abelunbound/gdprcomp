@@ -87,6 +87,21 @@ class ThresholdsConfig(BaseModel):
     retrieval_similarity: float | None = Field(default=None, ge=0, le=1)
 
 
+class SegmentationConfig(BaseModel):
+    """Passage settings for comparator methods. The whole-policy judge does not use them."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    passage_words: int = Field(ge=1)
+    overlap_words: int = Field(ge=0)
+
+    @model_validator(mode="after")
+    def overlap_is_shorter_than_a_passage(self) -> SegmentationConfig:
+        if self.overlap_words >= self.passage_words:
+            raise ValueError("overlap_words must be less than passage_words")
+        return self
+
+
 class WeightsConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -139,6 +154,7 @@ class FileConfig(BaseModel):
     thresholds: ThresholdsConfig
     weights: WeightsConfig
     sampling: SamplingConfig
+    segmentation: SegmentationConfig
     log_policy_text: bool = False
 
 
