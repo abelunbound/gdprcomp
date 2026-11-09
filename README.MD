@@ -28,6 +28,8 @@ pytest
 
 Non-secret settings are in `configs/config.yaml`. The API key is read from `ANTHROPIC_API_KEY` in `.env` when `model.provider` is `claude`. A missing key or an invalid file raises an error before any model call.
 
+Logs are JSON. API keys are redacted. Policy text is omitted unless `log_policy_text` is true.
+
 ## Layout
 
 - `src/gdpr_gap/` — installable package

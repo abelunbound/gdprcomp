@@ -12,6 +12,7 @@ def _valid_payload(criteria_path: Path) -> dict[str, object]:
     return {
         "seed": 42,
         "truncation": "error",
+        "log_policy_text": False,
         "corpus_location": "https://github.com/citp/privacy-policy-historical",
         "paths": {
             "data_dir": "data",
@@ -64,6 +65,7 @@ def test_repository_config_loads() -> None:
     assert config.weights.mode == "equal"
     assert config.sampling.domain_suffix == ".co.uk"
     assert config.truncation == "error"
+    assert config.log_policy_text is False
     assert config.api_key.get_secret_value() == KEY
     assert KEY not in repr(config)
 

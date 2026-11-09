@@ -139,6 +139,7 @@ class FileConfig(BaseModel):
     thresholds: ThresholdsConfig
     weights: WeightsConfig
     sampling: SamplingConfig
+    log_policy_text: bool = False
 
 
 class AppConfig(FileConfig):

@@ -1,5 +1,6 @@
 seed: 42
 truncation: error
+log_policy_text: false
 corpus_location: https://github.com/citp/privacy-policy-historical
 paths:
   data_dir: data

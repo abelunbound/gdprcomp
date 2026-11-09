@@ -20,7 +20,7 @@
 
   **Done when:** invalid config raises a clear error; missing API key fails fast with a helpful message.
 
-- [ ] **T04. Logging and secrets hygiene**
+- [x] **T04. Logging and secrets hygiene**
 
   Structured logging with secret redaction; policy text logging off by default behind a research flag.
 
