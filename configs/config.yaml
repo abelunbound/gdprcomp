@@ -1,0 +1,32 @@
+seed: 42
+truncation: error
+corpus_location: https://github.com/citp/privacy-policy-historical
+paths:
+  data_dir: data
+  corpus_cache_dir: data/corpus
+  prompts_dir: prompts
+  criteria_path: config/criteria_legal_basis.json
+model:
+  provider: claude
+  name: Claude Haiku 5.5
+  id: claude-haiku-5-5
+  gold_id: claude-sonnet-5-5
+scoring:
+  yes_score: 1
+  somewhat_score: 0.5
+  no_score: 0
+  high_band_min: 80
+  mid_band_min: 50
+thresholds:
+  retrieval_similarity: null
+weights:
+  mode: equal
+  value: 1
+sampling:
+  domain_suffix: .co.uk
+  pre_start: 2017-01-01
+  pre_end: 2017-12-31
+  buffer_start: 2018-01-01
+  buffer_end: 2018-12-31
+  post_start: 2019-01-01
+  post_end: 2019-12-31

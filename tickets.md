@@ -14,7 +14,7 @@
 
   **Done when:** CI runs green on the skeleton and fails on a deliberately broken test.
 
-- [ ] **T03. Config loading and validation**
+- [x] **T03. Config loading and validation**
 
   Central config loader (paths, model names, thresholds, weights, seeds) with schema validation and environment-variable overrides for secrets.
 
