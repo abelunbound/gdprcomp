@@ -59,6 +59,7 @@ class ModelConfig(BaseModel):
     timeout_seconds: float = Field(default=30, gt=0, le=120)
     max_retries: int = Field(default=3, ge=1, le=6)
     max_output_tokens: int = Field(default=800, ge=1, le=8000)
+    max_input_tokens: int = Field(default=200_000, ge=1, le=1_000_000)
 
     @model_validator(mode="after")
     def gold_model_differs(self) -> ModelConfig:

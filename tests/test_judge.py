@@ -1,5 +1,7 @@
 import json
+import logging
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -67,6 +69,38 @@ def test_long_policy_yields_22_verdicts_from_the_full_text() -> None:
     assert all(any(condition in prompt for prompt in transport.prompts) for condition in conditions)
     assert judgement.prompt_id == "whole_policy_judge"
     assert judgement.prompt_version == "v1"
+
+
+def test_over_limit_policy_is_not_sent() -> None:
+    config = _config()
+    config = config.model_copy(
+        update={"model": config.model.model_copy(update={"max_input_tokens": 10})}
+    )
+    policy = " ".join(f"w{index}" for index in range(400))
+    transport = RecordingTransport()
+    logger = logging.getLogger("gdpr_gap_judge_limit_test")
+    logger.handlers.clear()
+    logger.setLevel(logging.INFO)
+    records: list[logging.LogRecord] = []
+
+    class Capture(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            records.append(record)
+
+    logger.addHandler(Capture())
+
+    with pytest.raises(JudgeError, match="was not sent") as exc_info:
+        judge_policy(policy, config, LLMClient(config, transport), logger=logger)
+
+    message = str(exc_info.value)
+    assert "w399" not in message
+    assert transport.prompts == []
+    assert records[0].getMessage() == "policy_over_limit"
+    fields = cast(dict[str, Any], getattr(records[0], "fields"))
+    assert fields["word_count"] == 400
+    assert fields["max_input_tokens"] == 10
+    assert fields["input_tokens"] > 10
+    assert policy not in json.dumps(fields)
 
 
 def test_empty_policy_makes_no_model_call() -> None:

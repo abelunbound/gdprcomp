@@ -69,6 +69,7 @@ def test_repository_config_loads() -> None:
     assert config.paths.result_cache_dir == "data/result-cache"
     assert config.model.id == "claude-haiku-5-5"
     assert config.model.gold_id == "claude-sonnet-5-5"
+    assert config.model.max_input_tokens == 200_000
     assert config.weights.mode == "equal"
     assert config.sampling.domain_suffix == ".co.uk"
     assert config.truncation == "error"

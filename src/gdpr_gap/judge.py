@@ -2,6 +2,8 @@
 
 The full policy text is sent once per criterion. Passage retrieval is not
 consulted, and a criterion is never marked No because no passage was found.
+A prompt over the configured input limit raises JudgeError. The text is not
+shortened and is not sent.
 """
 
 from __future__ import annotations
@@ -68,6 +70,7 @@ def judge_policy(
             config=config,
             client=client,
             cache=cache,
+            logger=logger,
         )
         for criterion in ordered
     ]
@@ -90,6 +93,38 @@ def judge_policy(
     return judgement
 
 
+def estimated_input_tokens(text: str) -> int:
+    """Estimate input tokens from characters. This is not the provider tokenizer."""
+    if not text:
+        return 0
+    return max(1, (len(text) + 3) // 4)
+
+
+def _require_within_limit(
+    text: str,
+    policy_text: str,
+    config: AppConfig,
+    logger: logging.Logger | None,
+) -> None:
+    tokens = estimated_input_tokens(text)
+    limit = config.model.max_input_tokens
+    if tokens <= limit:
+        return
+    if logger is not None:
+        log_event(
+            logger,
+            "policy_over_limit",
+            model_id=config.model.id,
+            input_tokens=tokens,
+            max_input_tokens=limit,
+            word_count=len(policy_text.split()),
+        )
+    raise JudgeError(
+        "Policy exceeds the model input limit and was not sent: "
+        f"{tokens} estimated input tokens > {limit}."
+    )
+
+
 def _verdict(
     *,
     policy_text: str,
@@ -99,6 +134,7 @@ def _verdict(
     config: AppConfig,
     client: LLMClient,
     cache: ResultCache | None,
+    logger: logging.Logger | None,
 ) -> ModelResult:
     rendered = PromptRegistry(config.paths.prompts_dir).render(
         prompt.prompt_id,
@@ -109,6 +145,7 @@ def _verdict(
     )
     if policy_text not in rendered.text:
         raise JudgeError("The prompt does not contain the full policy text.")
+    _require_within_limit(rendered.text, policy_text, config, logger)
 
     def produce() -> ModelResult:
         result = client.judge(

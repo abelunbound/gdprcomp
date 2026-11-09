@@ -114,7 +114,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** any policy (including >2,500 words) yields 22 verdicts; no criterion is marked No for retrieval reasons.
 
-- [ ] **T18. Guard against silent truncation**
+- [x] **T18. Guard against silent truncation**
 
   If a policy exceeds a configured model limit, raise or explicitly chunk with a logged warning — never silently drop text.
 
