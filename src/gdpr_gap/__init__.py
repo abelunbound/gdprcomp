@@ -15,6 +15,7 @@ from gdpr_gap.exports import ExportError, export_classification, export_feedback
 from gdpr_gap.extract import ExtractionError, extract_text, extract_url
 from gdpr_gap.feedback import CitationReport, check_citations, evaluate_policy, suggest_fixes
 from gdpr_gap.gaps import gap_ids, is_gap
+from gdpr_gap.hybrid import HybridError, HybridJudgement, judge_hybrid
 from gdpr_gap.judge import JudgeError, judge_policy
 from gdpr_gap.llm import LLMClient, ModelError, build_transport
 from gdpr_gap.logging import configure_logging, log_event, log_policy
@@ -56,8 +57,11 @@ __all__ = [
     "ExportError",
     "ExtractionError",
     "gap_ids",
+    "HybridError",
+    "HybridJudgement",
     "is_gap",
     "JudgeError",
+    "judge_hybrid",
     "judge_policy",
     "load_calibration",
     "load_config",

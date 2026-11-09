@@ -154,7 +154,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** calibration file is loaded at runtime and recorded in the manifest.
 
-- [ ] **T24. Hybrid comparator**
+- [x] **T24. Hybrid comparator**
 
   Retrieval top passages + LLM judge; no relevant passage → No without LLM call; log retrieval misses separately.
 
