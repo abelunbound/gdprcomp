@@ -5,6 +5,7 @@ from gdpr_gap.corpus import CorpusError, load_corpus
 from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
 from gdpr_gap.extract import ExtractionError, extract_text, extract_url
 from gdpr_gap.gaps import gap_ids, is_gap
+from gdpr_gap.llm import LLMClient, ModelError, build_transport
 from gdpr_gap.logging import configure_logging, log_event, log_policy
 from gdpr_gap.sampling import (
     SamplingError,
@@ -33,6 +34,9 @@ __all__ = [
     "load_criteria",
     "load_gold_manifest",
     "log_event",
+    "LLMClient",
+    "ModelError",
+    "build_transport",
     "log_policy",
     "ping",
     "sample_descriptive_set",

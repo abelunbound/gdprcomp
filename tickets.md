@@ -82,7 +82,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
 ## Phase 3 — Model layer
 
-- [ ] **T13. LLM provider abstraction + structured output schema**
+- [x] **T13. LLM provider abstraction + structured output schema**
 
   Provider-agnostic client: model config, retries, timeout, token/cost logging, strict schema `{criterion_id, verdict, justification, evidence_quotes[]}`.
 

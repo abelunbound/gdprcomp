@@ -12,6 +12,9 @@ model:
   name: Claude Haiku 5.5
   id: claude-haiku-5-5
   gold_id: claude-sonnet-5-5
+  timeout_seconds: 30
+  max_retries: 3
+  max_output_tokens: 800
 scoring:
   yes_score: 1
   somewhat_score: 0.5
