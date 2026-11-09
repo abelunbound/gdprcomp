@@ -45,6 +45,10 @@ def _valid_payload(criteria_path: Path) -> dict[str, object]:
             "post_end": "2019-12-31",
         },
         "segmentation": {"passage_words": 120, "overlap_words": 20},
+        "embedding": {
+            "model_name": "nlpaueb/legal-bert-base-uncased",
+            "revision": "15b570cbf88259610b082a167dacc190124f60f6",
+        },
     }
 
 
@@ -66,6 +70,8 @@ def test_repository_config_loads() -> None:
     assert config.weights.mode == "equal"
     assert config.sampling.domain_suffix == ".co.uk"
     assert config.truncation == "error"
+    assert config.embedding.model_name == "nlpaueb/legal-bert-base-uncased"
+    assert config.embedding.revision == "15b570cbf88259610b082a167dacc190124f60f6"
     assert config.log_policy_text is False
     assert config.api_key.get_secret_value() == KEY
     assert KEY not in repr(config)

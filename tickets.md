@@ -88,7 +88,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** malformed responses fail safely and are logged; one mocked and one real-provider path tested.
 
-- [ ] **T14. Embedding client (Legal-BERT, mean pooling)**
+- [x] **T14. Embedding client (Legal-BERT, mean pooling)**
 
   Embedding interface with mean pooling and batch support; model name/version captured.
 

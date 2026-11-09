@@ -3,6 +3,7 @@
 from gdpr_gap.config import ConfigError, MissingSecretError, load_config
 from gdpr_gap.corpus import CorpusError, load_corpus
 from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
+from gdpr_gap.embeddings import EmbeddingClient, EmbeddingError
 from gdpr_gap.extract import ExtractionError, extract_text, extract_url
 from gdpr_gap.gaps import gap_ids, is_gap
 from gdpr_gap.llm import LLMClient, ModelError, build_transport
@@ -24,6 +25,8 @@ __all__ = [
     "CriteriaError",
     "MissingSecretError",
     "configure_logging",
+    "EmbeddingClient",
+    "EmbeddingError",
     "extract_text",
     "extract_url",
     "ExtractionError",

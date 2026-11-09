@@ -37,3 +37,8 @@ sampling:
 segmentation:
   passage_words: 120
   overlap_words: 20
+embedding:
+  model_name: nlpaueb/legal-bert-base-uncased
+  revision: 15b570cbf88259610b082a167dacc190124f60f6
+  max_length: 512
+  batch_size: 8

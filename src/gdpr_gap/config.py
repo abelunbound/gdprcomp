@@ -90,6 +90,17 @@ class ThresholdsConfig(BaseModel):
     retrieval_similarity: float | None = Field(default=None, ge=0, le=1)
 
 
+class EmbeddingConfig(BaseModel):
+    """Legal-BERT settings for comparator methods. The whole-policy judge does not use them."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    model_name: str = Field(min_length=1)
+    revision: str = Field(pattern=r"^[0-9a-f]{40}$")
+    max_length: int = Field(default=512, ge=8, le=512)
+    batch_size: int = Field(default=8, ge=1, le=64)
+
+
 class SegmentationConfig(BaseModel):
     """Passage settings for comparator methods. The whole-policy judge does not use them."""
 
@@ -158,6 +169,7 @@ class FileConfig(BaseModel):
     weights: WeightsConfig
     sampling: SamplingConfig
     segmentation: SegmentationConfig
+    embedding: EmbeddingConfig
     log_policy_text: bool = False
 
 
