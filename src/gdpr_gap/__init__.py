@@ -3,6 +3,7 @@
 from gdpr_gap.config import ConfigError, MissingSecretError, load_config
 from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
 from gdpr_gap.logging import configure_logging, log_event, log_policy
+from gdpr_gap.scoring import ScoringError, score_policy
 
 __version__ = "0.1.0"
 
@@ -16,6 +17,8 @@ __all__ = [
     "log_event",
     "log_policy",
     "ping",
+    "score_policy",
+    "ScoringError",
     "summary_table",
 ]
 

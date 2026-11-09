@@ -36,7 +36,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** all 22 load, validate, and a summary table renders from config alone.
 
-- [ ] **T06. Scoring module**
+- [x] **T06. Scoring module**
 
   Yes = 1, Somewhat = 0.5, No = 0; score = 100 × weighted sum ÷ sum of weights; bands (≥80, 50–79, <50); 220-point conversion; reject zero/negative total weight.
 
