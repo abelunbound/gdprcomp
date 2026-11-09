@@ -200,7 +200,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** two annotators can label independently without seeing each other; adjudication produces final labels.
 
-- [ ] **T31. Manual-review time tracking**
+- [x] **T31. Manual-review time tracking**
 
   Record labelling time to derive the manual-review baseline.
 

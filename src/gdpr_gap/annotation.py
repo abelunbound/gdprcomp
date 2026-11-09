@@ -1,8 +1,8 @@
-"""Blind double rating and adjudication.
+"""Gold labels and optional double rating.
 
-Each annotator works in a separate set and cannot read the other annotator's
-verdict. Merging the two sets is what the adjudicator sees. The adjudicated
-verdict is the final label. Every record is model-produced.
+The gold set has one labeller, the configured gold model. That model's verdict
+is the final gold label. A set without a gold labeller can still hold two
+blind raters and an adjudication. Every record is model-produced.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ import json
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 Verdict = Literal["Yes", "Somewhat", "No"]
 LABEL_SOURCE: Literal["model-produced"] = "model-produced"
@@ -72,25 +72,45 @@ class AnnotationSet(BaseModel):
 
     label_source: Literal["model-produced"] = LABEL_SOURCE
     judge_model_id: str | None = None
+    gold_model_id: str | None = None
     annotations: list[Annotation] = Field(default_factory=list)
     adjudications: list[Adjudication] = Field(default_factory=list)
 
-    @field_validator("judge_model_id")
+    @field_validator("judge_model_id", "gold_model_id")
     @classmethod
-    def judge_id_is_not_blank(cls, value: str | None) -> str | None:
+    def model_id_is_not_blank(cls, value: str | None) -> str | None:
         if value is not None and not value.strip():
-            raise ValueError("judge_model_id must not be blank")
+            raise ValueError("model id must not be blank")
         return value
 
+    @model_validator(mode="after")
+    def gold_labeller_is_the_only_rater(self) -> AnnotationSet:
+        if self.gold_model_id is None:
+            return self
+        if self.judge_model_id is not None and self.gold_model_id == self.judge_model_id:
+            raise ValueError("gold labeller must differ from the judge model")
+        for item in self.annotations:
+            if item.annotator_id != self.gold_model_id:
+                raise ValueError("only the gold labeller can label this set")
+        return self
 
-def empty_set(judge_model_id: str | None = None) -> AnnotationSet:
-    """Start a set whose labels cannot use the judge model id."""
-    return AnnotationSet(judge_model_id=judge_model_id)
+
+def empty_set(
+    judge_model_id: str | None = None,
+    *,
+    gold_model_id: str | None = None,
+) -> AnnotationSet:
+    """Start a set. Pass gold_model_id to keep every label from that one model."""
+    if gold_model_id is not None and judge_model_id == gold_model_id:
+        raise AnnotationError("The gold labeller must differ from the judge model.")
+    return AnnotationSet(judge_model_id=judge_model_id, gold_model_id=gold_model_id)
 
 
 def add_annotation(collection: AnnotationSet, item: Annotation) -> AnnotationSet:
     """Record one annotator's label. The other annotator's rows stay unchanged."""
     _reject_judge(collection.judge_model_id, item.annotator_id, "Annotator")
+    if collection.gold_model_id is not None and item.annotator_id != collection.gold_model_id:
+        raise AnnotationError("Only the gold labeller can label this set.")
     key = (item.policy_id, item.criterion_id)
     existing = _pair(collection, key)
     if any(row.annotator_id == item.annotator_id for row in existing):
@@ -105,7 +125,11 @@ def blind_view(collection: AnnotationSet, annotator_id: str) -> AnnotationSet:
     own = [item for item in collection.annotations if item.annotator_id == annotator_id]
     if not own:
         raise AnnotationError(f"No labels are stored for annotator {annotator_id}.")
-    return AnnotationSet(judge_model_id=collection.judge_model_id, annotations=own)
+    return AnnotationSet(
+        judge_model_id=collection.judge_model_id,
+        gold_model_id=collection.gold_model_id,
+        annotations=own,
+    )
 
 
 def merge_annotations(parts: list[AnnotationSet]) -> AnnotationSet:
@@ -113,9 +137,12 @@ def merge_annotations(parts: list[AnnotationSet]) -> AnnotationSet:
     if len(parts) < 2:
         raise AnnotationError("Merging needs at least two annotator sets.")
     judge_ids = {part.judge_model_id for part in parts}
+    gold_ids = {part.gold_model_id for part in parts}
     if len(judge_ids) != 1:
         raise AnnotationError("Annotator sets name different judge models.")
-    combined = empty_set(parts[0].judge_model_id)
+    if len(gold_ids) != 1:
+        raise AnnotationError("Annotator sets name different gold labellers.")
+    combined = empty_set(parts[0].judge_model_id, gold_model_id=parts[0].gold_model_id)
     for part in parts:
         if part.adjudications:
             raise AnnotationError("A blind annotator set cannot contain adjudications.")
@@ -194,8 +221,17 @@ def adopt_agreement(
 
 
 def final_labels(collection: AnnotationSet) -> list[Adjudication]:
-    """Return the adjudicated verdicts. Unadjudicated pairs are omitted."""
+    """Return adjudicated verdicts from a double-rated set. A gold set uses gold_labels."""
     return list(collection.adjudications)
+
+
+def gold_labels(collection: AnnotationSet) -> list[Annotation]:
+    """Return the gold labeller's verdicts. No second annotator is required."""
+    if collection.gold_model_id is None:
+        raise AnnotationError("This set has no gold labeller.")
+    if not collection.annotations:
+        raise AnnotationError("The gold set has no labels.")
+    return list(collection.annotations)
 
 
 def export_annotations(collection: AnnotationSet) -> str:
@@ -238,6 +274,7 @@ def _rebuild(
 ) -> AnnotationSet:
     return AnnotationSet(
         judge_model_id=collection.judge_model_id,
+        gold_model_id=collection.gold_model_id,
         annotations=annotations,
         adjudications=adjudications,
     )

@@ -15,6 +15,7 @@ from gdpr_gap.annotation import (
     export_annotations,
     export_blind,
     final_labels,
+    gold_labels,
     import_annotations,
     merge_annotations,
 )
@@ -117,6 +118,26 @@ def test_agreement_is_adopted_and_invalid_labels_are_rejected() -> None:
         payload = json.loads(export_annotations(agreed))
         payload["label_source"] = "expert"
         import_annotations(json.dumps(payload))
+
+
+def test_sonnet_alone_is_the_gold_label() -> None:
+    gold = add_annotation(
+        empty_set(JUDGE, gold_model_id=RATER_A),
+        _label(RATER_A, "Somewhat", "sonnet-only"),
+    )
+    labels = gold_labels(gold)
+
+    assert labels[0].annotator_id == RATER_A
+    assert labels[0].verdict == "Somewhat"
+    assert labels[0].label_source == "model-produced"
+    assert final_labels(gold) == []
+    restored = import_annotations(export_annotations(gold))
+    assert gold_labels(restored)[0].verdict == "Somewhat"
+
+    with pytest.raises(AnnotationError, match="Only the gold labeller"):
+        add_annotation(gold, _label(RATER_B, "No", "second"))
+    with pytest.raises(AnnotationError, match="gold labeller must differ"):
+        empty_set(JUDGE, gold_model_id=JUDGE)
 
 
 def test_adjudication_record_keeps_the_two_annotators() -> None:

@@ -9,6 +9,7 @@ from gdpr_gap.annotation import (
     export_annotations,
     export_blind,
     final_labels,
+    gold_labels,
     import_annotations,
     merge_annotations,
 )
@@ -59,6 +60,17 @@ from gdpr_gap.sampling import (
 )
 from gdpr_gap.scoring import ScoringError, score_policy
 from gdpr_gap.segmentation import SegmentationError, segment_passages
+from gdpr_gap.timing import (
+    ManualReviewBaseline,
+    TimeEntry,
+    TimeLog,
+    TimeSaved,
+    TimingError,
+    manual_review_baseline,
+    record_time,
+    time_saved,
+    time_saved_report,
+)
 
 __version__ = "0.1.0"
 
@@ -71,6 +83,7 @@ __all__ = [
     "export_annotations",
     "export_blind",
     "final_labels",
+    "gold_labels",
     "import_annotations",
     "merge_annotations",
     "CalibrationError",
@@ -110,6 +123,15 @@ __all__ = [
     "LegalBertBaseline",
     "load_gold_manifest",
     "load_run",
+    "ManualReviewBaseline",
+    "manual_review_baseline",
+    "record_time",
+    "TimeEntry",
+    "TimeLog",
+    "TimeSaved",
+    "time_saved",
+    "time_saved_report",
+    "TimingError",
     "ManifestError",
     "record_run",
     "reproduce",
