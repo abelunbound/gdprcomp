@@ -1,0 +1,14 @@
+Suggest a fix for one privacy-policy criterion. Do not change the verdict.
+Return only a JSON object with keys criterion_id, suggestion, and evidence_quotes.
+criterion_id must be {criterion_id}.
+suggestion must be a non-empty string.
+evidence_quotes must be a list of exact sentences from the policy.
+
+Criterion:
+{condition}
+
+Recorded verdict: {verdict}
+Recorded justification: {justification}
+
+Policy:
+{policy_text}

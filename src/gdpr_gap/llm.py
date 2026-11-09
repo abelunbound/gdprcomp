@@ -103,6 +103,87 @@ class LLMClient:
         model_id: str | None = None,
     ) -> ModelResult:
         """Return one schema-valid judgement. Malformed text is not retried."""
+        raw, chosen_model = self._send(
+            prompt,
+            prompt_id=prompt_id,
+            prompt_version=prompt_version,
+            model_id=model_id,
+        )
+        try:
+            judgement = parse_judgement(raw.text)
+        except ModelError as exc:
+            self._log(
+                "model_response_invalid",
+                model_id=chosen_model,
+                prompt_id=prompt_id,
+                prompt_version=prompt_version,
+                attempt=1,
+                reason=str(exc),
+            )
+            raise
+        usage = TokenUse(
+            input_tokens=raw.input_tokens,
+            output_tokens=raw.output_tokens,
+            cost_usd=_cost(raw, self._input_cost, self._output_cost),
+        )
+        self._log(
+            "model_call",
+            model_id=chosen_model,
+            prompt_id=prompt_id,
+            prompt_version=prompt_version,
+            attempt=1,
+            input_tokens=usage.input_tokens,
+            output_tokens=usage.output_tokens,
+            cost_usd=usage.cost_usd,
+        )
+        return ModelResult(
+            judgement=judgement,
+            model_id=chosen_model,
+            usage=usage,
+            prompt_id=prompt_id,
+            prompt_version=prompt_version,
+        )
+
+    def complete(
+        self,
+        prompt: str,
+        *,
+        prompt_id: str,
+        prompt_version: str,
+        model_id: str | None = None,
+    ) -> tuple[str, TokenUse, str]:
+        """Return raw model text, token use, and the model id. The text is not parsed."""
+        raw, chosen_model = self._send(
+            prompt,
+            prompt_id=prompt_id,
+            prompt_version=prompt_version,
+            model_id=model_id,
+        )
+        usage = TokenUse(
+            input_tokens=raw.input_tokens,
+            output_tokens=raw.output_tokens,
+            cost_usd=_cost(raw, self._input_cost, self._output_cost),
+        )
+        self._log(
+            "model_call",
+            model_id=chosen_model,
+            prompt_id=prompt_id,
+            prompt_version=prompt_version,
+            attempt=1,
+            input_tokens=usage.input_tokens,
+            output_tokens=usage.output_tokens,
+            cost_usd=usage.cost_usd,
+        )
+        return raw.text, usage, chosen_model
+
+    def _send(
+        self,
+        prompt: str,
+        *,
+        prompt_id: str,
+        prompt_version: str,
+        model_id: str | None,
+    ) -> tuple[RawCompletion, str]:
         chosen_model = model_id or self._config.model.id
         attempts = self._config.model.max_retries
         timeout = self._config.model.timeout_seconds
@@ -126,40 +207,7 @@ class LLMClient:
                     break
                 self._sleep(0.5 * attempt)
                 continue
-            try:
-                judgement = parse_judgement(raw.text)
-            except ModelError as exc:
-                self._log(
-                    "model_response_invalid",
-                    model_id=chosen_model,
-                    prompt_id=prompt_id,
-                    prompt_version=prompt_version,
-                    attempt=attempt,
-                    reason=str(exc),
-                )
-                raise
-            usage = TokenUse(
-                input_tokens=raw.input_tokens,
-                output_tokens=raw.output_tokens,
-                cost_usd=_cost(raw, self._input_cost, self._output_cost),
-            )
-            self._log(
-                "model_call",
-                model_id=chosen_model,
-                prompt_id=prompt_id,
-                prompt_version=prompt_version,
-                attempt=attempt,
-                input_tokens=usage.input_tokens,
-                output_tokens=usage.output_tokens,
-                cost_usd=usage.cost_usd,
-            )
-            return ModelResult(
-                judgement=judgement,
-                model_id=chosen_model,
-                usage=usage,
-                prompt_id=prompt_id,
-                prompt_version=prompt_version,
-            )
+            return raw, chosen_model
         raise ModelError(f"Model call failed after {attempts} attempts: {last_error}")
 
     def _log(self, event: str, **fields: str | int | float | bool | None) -> None:

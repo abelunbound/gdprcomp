@@ -15,7 +15,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 _PROMPT_ID = re.compile(r"^[a-z0-9_]+$")
 _VERSION_FILE = re.compile(r"^v([1-9][0-9]*)\.txt$")
-_PLACEHOLDERS = ("criterion_id", "condition", "policy_text")
 
 
 class PromptError(Exception):
@@ -75,14 +74,17 @@ class PromptRegistry:
         criterion_id: str,
         condition: str,
         policy_text: str,
+        verdict: str | None = None,
+        justification: str | None = None,
     ) -> PromptRecord:
         """Fill the stored template. The policy text is inserted last and is not scanned again."""
         record = self.load(prompt_id, version)
-        values = {
-            "criterion_id": criterion_id,
-            "condition": condition,
-            "policy_text": policy_text,
-        }
+        values = {"criterion_id": criterion_id, "condition": condition}
+        if verdict is not None:
+            values["verdict"] = verdict
+        if justification is not None:
+            values["justification"] = justification
+        values["policy_text"] = policy_text
         return record.model_copy(update={"text": _fill(record.text, values)})
 
     def versions(self, prompt_id: str) -> list[str]:
@@ -127,11 +129,11 @@ class PromptRegistry:
 
 def _fill(template: str, values: dict[str, str]) -> str:
     rendered = template
-    for name in _PLACEHOLDERS:
+    for name, value in values.items():
         token = "{" + name + "}"
         if rendered.count(token) != 1:
             raise PromptError(f"Prompt must contain {token} once.")
-        rendered = rendered.replace(token, values[name], 1)
+        rendered = rendered.replace(token, value, 1)
     return rendered
 
 

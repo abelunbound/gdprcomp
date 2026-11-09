@@ -122,7 +122,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
 ## Phase 5 — Split feedback
 
-- [ ] **T19. Separate feedback call**
+- [x] **T19. Separate feedback call**
 
   Second LLM call produces suggested fixes only for Somewhat/No criteria; never alters verdicts.
 
