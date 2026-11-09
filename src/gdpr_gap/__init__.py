@@ -2,6 +2,7 @@
 
 from gdpr_gap.config import ConfigError, MissingSecretError, load_config
 from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
+from gdpr_gap.gaps import gap_ids, is_gap
 from gdpr_gap.logging import configure_logging, log_event, log_policy
 from gdpr_gap.scoring import ScoringError, score_policy
 
@@ -12,6 +13,8 @@ __all__ = [
     "CriteriaError",
     "MissingSecretError",
     "configure_logging",
+    "gap_ids",
+    "is_gap",
     "load_config",
     "load_criteria",
     "log_event",

@@ -42,7 +42,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** unit tests cover all-Yes, all-No, mixed weights, invalid weights, band boundaries, 220-point conversion.
 
-- [ ] **T07. Gap label helper**
+- [x] **T07. Gap label helper**
 
   Canonical `is_gap(verdict)` = verdict is not Yes; used everywhere metrics and examples are computed.
 

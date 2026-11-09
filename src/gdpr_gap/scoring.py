@@ -16,6 +16,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
 from gdpr_gap.config import ScoringConfig
+from gdpr_gap.gaps import is_gap
 
 POINTS_SCALE = 220
 VERDICTS = ("Yes", "Somewhat", "No")
@@ -45,6 +46,10 @@ class PolicyScore(BaseModel):
     weighted_sum: float
     weight_total: float
     criteria: list[ScoredCriterion]
+
+    def gap_ids(self) -> list[str]:
+        """Return scored criteria that is_gap marks as gaps, in score order."""
+        return [item.criterion_id for item in self.criteria if is_gap(item.verdict)]
 
 
 def score_policy(
