@@ -134,7 +134,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** tests cover valid and fabricated citations.
 
-- [ ] **T21. Feedback-quality export**
+- [x] **T21. Feedback-quality export**
 
   Export feedback with fields for rater correctness/actionability and citation-support status; no F1 for feedback.
 

@@ -4,6 +4,7 @@ from gdpr_gap.config import ConfigError, MissingSecretError, load_config
 from gdpr_gap.corpus import CorpusError, load_corpus
 from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
 from gdpr_gap.embeddings import EmbeddingClient, EmbeddingError
+from gdpr_gap.exports import ExportError, export_classification, export_feedback_quality
 from gdpr_gap.extract import ExtractionError, extract_text, extract_url
 from gdpr_gap.feedback import CitationReport, check_citations, evaluate_policy, suggest_fixes
 from gdpr_gap.gaps import gap_ids, is_gap
@@ -38,6 +39,9 @@ __all__ = [
     "extract_text",
     "extract_url",
     "evaluate_policy",
+    "export_classification",
+    "export_feedback_quality",
+    "ExportError",
     "ExtractionError",
     "gap_ids",
     "is_gap",
