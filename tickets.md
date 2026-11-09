@@ -186,7 +186,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** a run can be fully reproduced from its manifest alone.
 
-- [ ] **T29. Repeat-run consistency**
+- [x] **T29. Repeat-run consistency**
 
   N repeats per policy/method; compute agreement across repeats.
 

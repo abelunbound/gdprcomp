@@ -30,6 +30,13 @@ from gdpr_gap.orchestrator import (
     run_policy,
 )
 from gdpr_gap.prompts import PromptError, PromptRecord, PromptRegistry
+from gdpr_gap.repeats import (
+    RepeatError,
+    RepeatReport,
+    agreement_report,
+    load_repeats,
+    record_repeats,
+)
 from gdpr_gap.result_cache import CacheError, CacheKey, ResultCache, make_cache_key
 from gdpr_gap.retrieval import RetrievalBaseline, RetrievalError, retrieve_baseline
 from gdpr_gap.sampling import (
@@ -85,6 +92,11 @@ __all__ = [
     "record_run",
     "reproduce",
     "RunManifest",
+    "RepeatError",
+    "RepeatReport",
+    "agreement_report",
+    "load_repeats",
+    "record_repeats",
     "make_cache_key",
     "log_event",
     "LLMClient",
