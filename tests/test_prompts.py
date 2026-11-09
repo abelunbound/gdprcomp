@@ -59,4 +59,3 @@ def test_bad_prompt_id_and_missing_placeholder_fail(tmp_path: Path) -> None:
             condition="A condition.",
             policy_text="A policy.",
         )
-
