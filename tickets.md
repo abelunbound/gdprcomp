@@ -8,7 +8,7 @@
 
   **Done when:** `pip install -e .` works and a trivial module imports.
 
-- [ ] **T02. CI pipeline**
+- [x] **T02. CI pipeline**
 
   Add CI to run lint, type-check, and tests on push.
 

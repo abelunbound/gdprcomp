@@ -15,6 +15,15 @@ pip install -e ".[dev]"
 cp .env.example .env
 ```
 
+GitHub Actions runs these checks on every push and pull request:
+
+```bash
+ruff check src tests
+ruff format --check src tests
+mypy src tests
+pytest
+```
+
 ## Layout
 
 - `src/gdpr_gap/` — installable package
