@@ -6,6 +6,7 @@ from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
 from gdpr_gap.embeddings import EmbeddingClient, EmbeddingError
 from gdpr_gap.extract import ExtractionError, extract_text, extract_url
 from gdpr_gap.gaps import gap_ids, is_gap
+from gdpr_gap.judge import JudgeError, judge_policy
 from gdpr_gap.llm import LLMClient, ModelError, build_transport
 from gdpr_gap.logging import configure_logging, log_event, log_policy
 from gdpr_gap.prompts import PromptError, PromptRecord, PromptRegistry
@@ -36,6 +37,8 @@ __all__ = [
     "ExtractionError",
     "gap_ids",
     "is_gap",
+    "JudgeError",
+    "judge_policy",
     "load_config",
     "load_corpus",
     "load_criteria",

@@ -108,7 +108,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
 ## Phase 4 — Main method: whole-policy LLM
 
-- [ ] **T17. Whole-policy judge**
+- [x] **T17. Whole-policy judge**
 
   Send full policy against each criterion; return verdict + justification + evidence quotes; no retrieval gating.
 
