@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -16,6 +17,7 @@ from gdpr_gap.criteria import load_criteria
 from gdpr_gap.gaps import is_gap
 from gdpr_gap.judge import PolicyJudgement, _require_within_limit, judge_policy
 from gdpr_gap.llm import LLMClient, ModelError
+from gdpr_gap.logging import log_event
 from gdpr_gap.prompts import PromptRegistry
 from gdpr_gap.result_cache import ResultCache
 from gdpr_gap.scoring import PolicyScore, score_policy
@@ -31,11 +33,22 @@ class CriterionFeedback(BaseModel):
     evidence_quotes: list[str]
 
 
+class CitationReport(BaseModel):
+    """Whether each feedback quote appears in the policy."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    criterion_id: str = Field(pattern=r"^[a-z0-9_]+$")
+    citation_support: Literal["supported", "unsupported"]
+    unsupported_quotes: list[str]
+
+
 class PolicyReview(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     judgement: PolicyJudgement
     feedback: list[CriterionFeedback]
+    citations: list[CitationReport]
     score: PolicyScore
 
 
@@ -54,6 +67,7 @@ def evaluate_policy(
     return PolicyReview(
         judgement=judgement,
         feedback=items,
+        citations=check_citations(policy_text, items, logger=logger),
         score=score_verdicts(judgement, config),
     )
 
@@ -94,6 +108,42 @@ def suggest_fixes(
         )
         fixes.append(_parse_feedback(text, criterion_id))
     return fixes
+
+
+def check_citations(
+    policy_text: str,
+    feedback: list[CriterionFeedback],
+    *,
+    logger: logging.Logger | None = None,
+) -> list[CitationReport]:
+    """Flag feedback quotes that do not appear in the policy. Verdicts are not involved."""
+    reports: list[CitationReport] = []
+    for item in feedback:
+        unsupported = [
+            quote for quote in item.evidence_quotes if not quote_in_policy(policy_text, quote)
+        ]
+        supported = bool(item.evidence_quotes) and not unsupported
+        report = CitationReport(
+            criterion_id=item.criterion_id,
+            citation_support="supported" if supported else "unsupported",
+            unsupported_quotes=unsupported,
+        )
+        if logger is not None and report.citation_support == "unsupported":
+            log_event(
+                logger,
+                "citation_unsupported",
+                criterion_id=item.criterion_id,
+                unsupported_count=len(unsupported),
+                quote_count=len(item.evidence_quotes),
+            )
+        reports.append(report)
+    return reports
+
+
+def quote_in_policy(policy_text: str, quote: str) -> bool:
+    """Return whether a non-empty quote appears exactly in the policy."""
+    text = quote.strip()
+    return bool(text) and text in policy_text
 
 
 def score_verdicts(judgement: PolicyJudgement, config: AppConfig) -> PolicyScore:

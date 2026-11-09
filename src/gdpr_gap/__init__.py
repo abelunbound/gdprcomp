@@ -5,7 +5,7 @@ from gdpr_gap.corpus import CorpusError, load_corpus
 from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
 from gdpr_gap.embeddings import EmbeddingClient, EmbeddingError
 from gdpr_gap.extract import ExtractionError, extract_text, extract_url
-from gdpr_gap.feedback import evaluate_policy, suggest_fixes
+from gdpr_gap.feedback import CitationReport, check_citations, evaluate_policy, suggest_fixes
 from gdpr_gap.gaps import gap_ids, is_gap
 from gdpr_gap.judge import JudgeError, judge_policy
 from gdpr_gap.llm import LLMClient, ModelError, build_transport
@@ -25,6 +25,8 @@ __version__ = "0.1.0"
 
 __all__ = [
     "CacheError",
+    "CitationReport",
+    "check_citations",
     "CacheKey",
     "ConfigError",
     "CorpusError",

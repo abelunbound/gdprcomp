@@ -128,7 +128,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** disabling feedback leaves verdicts and scores byte-identical.
 
-- [ ] **T20. Citation-support check**
+- [x] **T20. Citation-support check**
 
   Feedback must cite quotes that actually exist in the policy; flag unsupported citations.
 
