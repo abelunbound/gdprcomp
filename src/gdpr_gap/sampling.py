@@ -22,12 +22,15 @@ from gdpr_gap.corpus import PolicyCorpus, PolicyRecord
 from gdpr_gap.logging import log_event
 
 GOLD_PER_WINDOW = 10
+DESCRIPTIVE_PER_WINDOW = 40
+NOT_VALIDATION: Literal["not validation unless labelled"] = "not validation unless labelled"
 WindowName = Literal["pre", "post", "buffer", "outside"]
 _LATER_PRE = "excluded: a later pre-window snapshot was kept for this site"
 _EARLIER_POST = "excluded: an earlier post-window snapshot was kept for this site"
 _BUFFER = "excluded: snapshot date is inside the buffer window"
 _OUTSIDE = "excluded: snapshot date is outside the pre, buffer, and post windows"
 _NOT_DRAWN = "excluded: site was not drawn for this seed"
+_RESERVED = "excluded: site is reserved for the gold set"
 _PAIRED_PRE = "included: latest pre-window snapshot for a site drawn in both windows"
 _PAIRED_POST = "included: earliest post-window snapshot for a site drawn in both windows"
 _FILL_PRE = "included: latest pre-window snapshot drawn to fill the pre sample"
@@ -83,11 +86,34 @@ class GoldSample(BaseModel):
 
     def write_manifest(self, path: str | Path) -> Path:
         """Write the sample and every inclusion or exclusion reason."""
-        destination = Path(path)
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        payload = self.model_dump(mode="json")
-        destination.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        return destination
+        return _write_manifest(path, self.model_dump(mode="json"))
+
+
+class DescriptiveSample(BaseModel):
+    """A descriptive sample. It is not a validation set unless it is later labelled."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    role: Literal["descriptive"] = "descriptive"
+    notice: Literal["not validation unless labelled"] = NOT_VALIDATION
+    seed: int = Field(ge=0)
+    per_window: int = Field(ge=1)
+    domain_suffix: str
+    pre_start: date
+    pre_end: date
+    buffer_start: date
+    buffer_end: date
+    post_start: date
+    post_end: date
+    paired_site_count: int = Field(ge=0)
+    reserved_domains: list[str]
+    policy_ids: list[str]
+    selected: list[SelectedSnapshot]
+    decisions: list[SampleDecision]
+
+    def write_manifest(self, path: str | Path) -> Path:
+        """Write the descriptive sample. The notice forbids treating it as validation."""
+        return _write_manifest(path, self.model_dump(mode="json"))
 
 
 def sample_gold_set(
@@ -100,6 +126,68 @@ def sample_gold_set(
     logger: logging.Logger | None = None,
 ) -> GoldSample:
     """Sample paired sites first, then fill either window if fewer than `per_window` pairs exist."""
+    _check_request(corpus, sampling, seed, per_window)
+    selected, decisions, paired_count = _assemble(corpus, sampling, seed, per_window, set())
+    sample = _gold_sample(sampling, seed, per_window, selected, decisions, paired_count)
+    if manifest_path is not None:
+        sample.write_manifest(manifest_path)
+    if logger is not None:
+        _log_sample(logger, sample, "gold_sample")
+    return sample
+
+
+def sample_descriptive_set(
+    corpus: PolicyCorpus,
+    sampling: SamplingConfig,
+    *,
+    seed: int,
+    per_window: int = DESCRIPTIVE_PER_WINDOW,
+    reserved_domains: set[str] | None = None,
+    manifest_path: str | Path | None = None,
+    logger: logging.Logger | None = None,
+) -> DescriptiveSample:
+    """Draw the descriptive corpus. Gold-set sites passed in `reserved_domains` are left out."""
+    _check_request(corpus, sampling, seed, per_window)
+    reserved = set(reserved_domains or ())
+    selected, decisions, paired_count = _assemble(corpus, sampling, seed, per_window, reserved)
+    sample = DescriptiveSample(
+        seed=seed,
+        per_window=per_window,
+        domain_suffix=sampling.domain_suffix,
+        pre_start=sampling.pre_start,
+        pre_end=sampling.pre_end,
+        buffer_start=sampling.buffer_start,
+        buffer_end=sampling.buffer_end,
+        post_start=sampling.post_start,
+        post_end=sampling.post_end,
+        paired_site_count=paired_count,
+        reserved_domains=sorted(reserved),
+        policy_ids=[item.snapshot_id for item in selected],
+        selected=selected,
+        decisions=decisions,
+    )
+    if manifest_path is not None:
+        sample.write_manifest(manifest_path)
+    if logger is not None:
+        _log_sample(logger, sample, "descriptive_sample")
+    return sample
+
+
+def load_gold_manifest(path: str | Path) -> GoldSample:
+    """Load a gold manifest. A descriptive manifest is rejected."""
+    payload = _read_manifest(path)
+    notice = str(payload.get("notice", ""))
+    if payload.get("role") != "gold" or NOT_VALIDATION in notice:
+        raise SamplingError(
+            f"{path} is not a gold-set manifest. "
+            "A descriptive sample is not validation unless labelled."
+        )
+    return GoldSample.model_validate(payload)
+
+
+def _check_request(
+    corpus: PolicyCorpus, sampling: SamplingConfig, seed: int, per_window: int
+) -> None:
     if per_window < 1:
         raise SamplingError("per_window must be at least 1")
     if seed < 0:
@@ -109,12 +197,27 @@ def sample_gold_set(
             f"Corpus suffix {corpus.domain_suffix!r} does not match {sampling.domain_suffix!r}."
         )
 
+
+def _assemble(
+    corpus: PolicyCorpus,
+    sampling: SamplingConfig,
+    seed: int,
+    per_window: int,
+    reserved: set[str],
+) -> tuple[list[SelectedSnapshot], list[SampleDecision], int]:
     grouped = _group_by_window(corpus, sampling)
     pre_choice, pre_rejected = _choose_site_snapshots(grouped["pre"], latest=True)
     post_choice, post_rejected = _choose_site_snapshots(grouped["post"], latest=False)
-    paired_domains = sorted(set(pre_choice) & set(post_choice))
-    drawn_pre, drawn_post = _draw_sites(paired_domains, pre_choice, post_choice, seed, per_window)
-
+    available_pre = {
+        domain: record for domain, record in pre_choice.items() if domain not in reserved
+    }
+    available_post = {
+        domain: record for domain, record in post_choice.items() if domain not in reserved
+    }
+    paired_domains = sorted(set(available_pre) & set(available_post))
+    drawn_pre, drawn_post = _draw_sites(
+        paired_domains, available_pre, available_post, seed, per_window
+    )
     decisions = _decisions(
         corpus,
         sampling,
@@ -125,9 +228,21 @@ def sample_gold_set(
         drawn_pre,
         drawn_post,
         paired_domains,
+        reserved,
     )
     selected = _selected(pre_choice, post_choice, drawn_pre, drawn_post, paired_domains)
-    sample = GoldSample(
+    return selected, decisions, len(paired_domains)
+
+
+def _gold_sample(
+    sampling: SamplingConfig,
+    seed: int,
+    per_window: int,
+    selected: list[SelectedSnapshot],
+    decisions: list[SampleDecision],
+    paired_count: int,
+) -> GoldSample:
+    return GoldSample(
         seed=seed,
         per_window=per_window,
         domain_suffix=sampling.domain_suffix,
@@ -137,16 +252,25 @@ def sample_gold_set(
         buffer_end=sampling.buffer_end,
         post_start=sampling.post_start,
         post_end=sampling.post_end,
-        paired_site_count=len(paired_domains),
+        paired_site_count=paired_count,
         policy_ids=[item.snapshot_id for item in selected],
         selected=selected,
         decisions=decisions,
     )
-    if manifest_path is not None:
-        sample.write_manifest(manifest_path)
-    if logger is not None:
-        _log_sample(logger, sample)
-    return sample
+
+
+def _write_manifest(path: str | Path, payload: object) -> Path:
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return destination
+
+
+def _read_manifest(path: str | Path) -> dict[str, object]:
+    loaded = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(loaded, dict):
+        raise SamplingError(f"{path} is not a sampling manifest.")
+    return loaded
 
 
 def _group_by_window(
@@ -236,6 +360,7 @@ def _decisions(
     drawn_pre: list[str],
     drawn_post: list[str],
     paired_domains: list[str],
+    reserved: set[str],
 ) -> list[SampleDecision]:
     drawn = {"pre": set(drawn_pre), "post": set(drawn_post)}
     paired = set(paired_domains)
@@ -247,7 +372,7 @@ def _decisions(
     for record in sorted(corpus.records, key=lambda item: int(item.snapshot_id)):
         window = _window_for(record.snapshot_date, sampling)
         action, reason = _decision_for(
-            record, window, pre_choice, post_choice, drawn, paired, rejected_reason
+            record, window, pre_choice, post_choice, drawn, paired, rejected_reason, reserved
         )
         decisions.append(
             SampleDecision(
@@ -270,6 +395,7 @@ def _decision_for(
     drawn: dict[str, set[str]],
     paired: set[str],
     rejected_reason: dict[str, str],
+    reserved: set[str],
 ) -> tuple[Literal["included", "excluded"], str]:
     if window == "buffer":
         return "excluded", _BUFFER
@@ -277,6 +403,8 @@ def _decision_for(
         return "excluded", _OUTSIDE
     if record.snapshot_id in rejected_reason:
         return "excluded", rejected_reason[record.snapshot_id]
+    if record.domain in reserved and window in ("pre", "post"):
+        return "excluded", _RESERVED
     chosen = pre_choice if window == "pre" else post_choice
     kept = chosen.get(record.domain)
     if kept is None or kept.snapshot_id != record.snapshot_id:
@@ -327,12 +455,12 @@ def _selected_row(
     )
 
 
-def _log_sample(logger: logging.Logger, sample: GoldSample) -> None:
+def _log_sample(logger: logging.Logger, sample: GoldSample | DescriptiveSample, event: str) -> None:
     included = [item for item in sample.decisions if item.action == "included"]
     excluded = len(sample.decisions) - len(included)
     log_event(
         logger,
-        "gold_sample",
+        event,
         seed=sample.seed,
         included=len(included),
         excluded=excluded,
@@ -341,7 +469,7 @@ def _log_sample(logger: logging.Logger, sample: GoldSample) -> None:
     for item in sample.selected:
         log_event(
             logger,
-            "gold_sample_included",
+            f"{event}_included",
             snapshot_id=item.snapshot_id,
             domain=item.domain,
             window=item.window,

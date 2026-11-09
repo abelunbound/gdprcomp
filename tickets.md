@@ -62,7 +62,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** rerunning with the same seed yields identical policy IDs and a written sampling manifest.
 
-- [ ] **T10. Descriptive 40+40 corpus sampler**
+- [x] **T10. Descriptive 40+40 corpus sampler**
 
   Separate sampler for 40 pre / 40 post for descriptive analysis only; output manifest states “not validation unless labelled”.
 
