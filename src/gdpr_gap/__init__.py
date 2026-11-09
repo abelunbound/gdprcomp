@@ -20,6 +20,14 @@ from gdpr_gap.judge import JudgeError, judge_policy
 from gdpr_gap.legal_bert import LegalBertBaseline, score_legal_bert
 from gdpr_gap.llm import LLMClient, ModelError, build_transport
 from gdpr_gap.logging import configure_logging, log_event, log_policy
+from gdpr_gap.orchestrator import (
+    DEFAULT_METHOD,
+    OrchestratorError,
+    PolicyDocument,
+    PolicyRun,
+    run_batch,
+    run_policy,
+)
 from gdpr_gap.prompts import PromptError, PromptRecord, PromptRegistry
 from gdpr_gap.result_cache import CacheError, CacheKey, ResultCache, make_cache_key
 from gdpr_gap.retrieval import RetrievalBaseline, RetrievalError, retrieve_baseline
@@ -46,6 +54,7 @@ __all__ = [
     "ConfigError",
     "CorpusError",
     "CriteriaError",
+    "DEFAULT_METHOD",
     "MissingSecretError",
     "configure_logging",
     "EmbeddingClient",
@@ -76,6 +85,11 @@ __all__ = [
     "ModelError",
     "build_transport",
     "log_policy",
+    "OrchestratorError",
+    "PolicyDocument",
+    "PolicyRun",
+    "run_batch",
+    "run_policy",
     "ping",
     "PromptError",
     "PromptRecord",

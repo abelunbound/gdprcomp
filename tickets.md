@@ -174,7 +174,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
 ## Phase 7 — Orchestration and persistence
 
-- [ ] **T27. Unified pipeline orchestrator**
+- [x] **T27. Unified pipeline orchestrator**
 
   One entry point for app and batch with method selector: `whole_policy_llm` (default), `hybrid`, `legal_bert_only`.
 

@@ -24,8 +24,9 @@ from gdpr_gap.feedback import (
 )
 from gdpr_gap.gaps import is_gap
 from gdpr_gap.judge import WHOLE_POLICY_PROMPT_ID, PolicyJudgement, _verdict
-from gdpr_gap.legal_bert import LegalBertBaseline, LegalBertCriterion, score_legal_bert
+from gdpr_gap.legal_bert import LegalBertBaseline, LegalBertCriterion
 from gdpr_gap.llm import LLMClient, ModelResult, build_transport
+from gdpr_gap.orchestrator import run_policy, whole_policy_result
 from gdpr_gap.prompts import PromptRegistry
 from gdpr_gap.single_policy import (
     NOT_LEGAL_ADVICE,
@@ -214,13 +215,21 @@ def show_retrieval(
         return html.P("Paste a policy first."), "", RETRIEVAL_METHOD
     try:
         config = load_config()
-        client = EmbeddingClient(config.embedding, _cached_encoder(config))
-        baseline = score_legal_bert(policy_text, config, client)
+        embeddings = EmbeddingClient(config.embedding, _cached_encoder(config))
+        recorded = run_policy(
+            policy_text,
+            config,
+            "legal_bert_only",
+            policy_id="pasted",
+            embeddings=embeddings,
+        )
+        if recorded.retrieval is None:
+            raise RuntimeError("legal_bert_only result has no retrieval signal")
         names = {item.id: item.name for item in _ordered(config)}
     except Exception as exc:
         message = html.P(f"Could not score the retrieval signal: {exc}")
         return message, "", RETRIEVAL_METHOD
-    return render_retrieval(baseline, names), "", RETRIEVAL_METHOD
+    return render_retrieval(recorded.retrieval, names), "", RETRIEVAL_METHOD
 
 
 def _cached_encoder(config: AppConfig) -> TextEncoder:
@@ -334,7 +343,10 @@ def _finish(
         citations=check_citations(policy, items),
         score=score_verdicts(judgement, config),
     )
-    return None, "", render_result(build_display(review, config)), False, False
+    recorded = whole_policy_result("pasted", review)
+    if recorded.review is None:
+        raise RuntimeError("whole_policy_llm result has no review")
+    return None, "", render_result(build_display(recorded.review, config)), False, False
 
 
 def _ordered(config: AppConfig) -> list[Criterion]:
