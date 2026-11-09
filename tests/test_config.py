@@ -17,6 +17,7 @@ def _valid_payload(criteria_path: Path) -> dict[str, object]:
         "paths": {
             "data_dir": "data",
             "corpus_cache_dir": "data/corpus",
+            "result_cache_dir": "data/result-cache",
             "prompts_dir": "prompts",
             "criteria_path": str(criteria_path),
         },
@@ -65,6 +66,7 @@ def test_repository_config_loads() -> None:
         load_env_file=False,
     )
     assert config.seed == 42
+    assert config.paths.result_cache_dir == "data/result-cache"
     assert config.model.id == "claude-haiku-5-5"
     assert config.model.gold_id == "claude-sonnet-5-5"
     assert config.weights.mode == "equal"

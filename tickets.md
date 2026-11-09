@@ -94,7 +94,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** embeddings are deterministic for fixed input/model and model version is logged.
 
-- [ ] **T15. Cache layer**
+- [x] **T15. Cache layer**
 
   Cache LLM and embedding results keyed by policy hash + criterion + prompt version + model.
 

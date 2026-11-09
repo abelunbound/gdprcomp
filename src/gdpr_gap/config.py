@@ -44,6 +44,7 @@ class PathsConfig(BaseModel):
 
     data_dir: str = Field(min_length=1)
     corpus_cache_dir: str = Field(min_length=1)
+    result_cache_dir: str = Field(min_length=1)
     prompts_dir: str = Field(min_length=1)
     criteria_path: str = Field(min_length=1)
 

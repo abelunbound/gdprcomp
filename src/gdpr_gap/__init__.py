@@ -8,6 +8,7 @@ from gdpr_gap.extract import ExtractionError, extract_text, extract_url
 from gdpr_gap.gaps import gap_ids, is_gap
 from gdpr_gap.llm import LLMClient, ModelError, build_transport
 from gdpr_gap.logging import configure_logging, log_event, log_policy
+from gdpr_gap.result_cache import CacheError, CacheKey, ResultCache, make_cache_key
 from gdpr_gap.sampling import (
     SamplingError,
     load_gold_manifest,
@@ -20,6 +21,8 @@ from gdpr_gap.segmentation import SegmentationError, segment_passages
 __version__ = "0.1.0"
 
 __all__ = [
+    "CacheError",
+    "CacheKey",
     "ConfigError",
     "CorpusError",
     "CriteriaError",
@@ -36,12 +39,14 @@ __all__ = [
     "load_corpus",
     "load_criteria",
     "load_gold_manifest",
+    "make_cache_key",
     "log_event",
     "LLMClient",
     "ModelError",
     "build_transport",
     "log_policy",
     "ping",
+    "ResultCache",
     "sample_descriptive_set",
     "sample_gold_set",
     "segment_passages",
