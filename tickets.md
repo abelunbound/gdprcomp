@@ -68,7 +68,7 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
   **Done when:** sampler is distinct from gold-set sampler and cannot be mistaken for validation input.
 
-- [ ] **T11. Text extraction and cleaning**
+- [x] **T11. Text extraction and cleaning**
 
   Whole-page text from URL or pasted text; whitespace normalization; section boundaries preserved; extraction failures logged.
 

@@ -3,6 +3,7 @@
 from gdpr_gap.config import ConfigError, MissingSecretError, load_config
 from gdpr_gap.corpus import CorpusError, load_corpus
 from gdpr_gap.criteria import CriteriaError, load_criteria, summary_table
+from gdpr_gap.extract import ExtractionError, extract_text, extract_url
 from gdpr_gap.gaps import gap_ids, is_gap
 from gdpr_gap.logging import configure_logging, log_event, log_policy
 from gdpr_gap.sampling import (
@@ -21,6 +22,9 @@ __all__ = [
     "CriteriaError",
     "MissingSecretError",
     "configure_logging",
+    "extract_text",
+    "extract_url",
+    "ExtractionError",
     "gap_ids",
     "is_gap",
     "load_config",
