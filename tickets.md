@@ -50,13 +50,13 @@ Implementation order: Phases 1–5, then T36, Phases 6–7, T37 and T40, Phase 8
 
 ## Phase 2 — Data acquisition and sampling
 
-- [ ] **T08. Princeton-Leuven corpus loader**
+- [x] **T08. Princeton-Leuven corpus loader**
 
   Load policy records with snapshot date, URL, text, domain; validate required fields; cache locally.
 
   **Done when:** loader produces a typed dataframe/records object and fails clearly on missing corpus.
 
-- [ ] **T09. Gold-set sampler (~20 policies)**
+- [x] **T09. Gold-set sampler (~20 policies)**
 
   10 pre-2018 / 10 post-2018, preferably same websites at both dates; buffer around 25 May 2018; fixed seed; logged inclusion/exclusion reasons.
 
